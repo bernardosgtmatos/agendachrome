@@ -1,0 +1,56 @@
+// Gerador do Prisma Client
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Fonte de dados
+// Em desenvolvimento: SQLite (não precisa instalar nada)
+// Em produção: trocar provider para "postgresql" e usar DATABASE_URL do Neon
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== MODELOS ====================
+
+// Usuário do sistema: professor ou coordenador
+model Usuario {
+  id        Int           @id @default(autoincrement())
+  nome      String
+  email     String        @unique
+  senha     String        // hash bcrypt
+  role      String        @default("professor") // "professor" | "coordenador"
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  agendamentos Agendamento[] @relation("ProfessorAgendamentos")
+}
+
+// Turma escolar (ex: "6° Ano A")
+model Turma {
+  id        Int           @id @default(autoincrement())
+  nome      String        @unique
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  agendamentos Agendamento[]
+}
+
+// Agendamento de chromebooks para uma turma em uma data/horário
+model Agendamento {
+  id               Int       @id @default(autoincrement())
+  professorId      Int
+  professor        Usuario   @relation("ProfessorAgendamentos", fields: [professorId], references: [id])
+  turmaId          Int
+  turma            Turma     @relation(fields: [turmaId], references: [id])
+  quantidade       Int
+  data             DateTime  // Apenas a data (YYYY-MM-DD), sem hora
+  horarioRetirada  String    // Nome do horário de retirada
+  horarioDevolucao String    // Nome do horário de devolução
+  observacoes      String?
+  status           String    @default("ativo") // "ativo" | "cancelado"
+  dataCriacao      DateTime  @default(now())
+  dataCancelamento DateTime?
+
+  @@index([data, status])
+  @@index([professorId])
+  @@index([turmaId])
+}

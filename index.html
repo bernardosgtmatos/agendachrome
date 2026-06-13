@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Agendamento - Chromebooks Escolares</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        .input-error {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+        }
+        .error-message {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+        .turma-option {
+            transition: all 0.2s ease;
+        }
+        .turma-option:hover {
+            background-color: #f3f4f6;
+            transform: translateX(4px);
+        }
+        .modal {
+            transition: all 0.3s ease;
+        }
+        @keyframes highlight {
+            0% { background-color: #dbeafe; }
+            100% { background-color: transparent; }
+        }
+        .agendamento-row {
+            transition: all 0.2s ease;
+        }
+        .agendamento-row:hover {
+            background-color: #f9fafb;
+            transform: translateX(2px);
+        }
+        .notification {
+            animation: slideInRight 0.3s ease-out;
+        }
+        /* Popup de observações */
+        .obs-popup {
+            position: fixed;
+            z-index: 9999;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            padding: 1rem 1.25rem;
+            max-width: 360px;
+            min-width: 200px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: #374151;
+            animation: fadeIn 0.15s ease-out;
+        }
+        .obs-popup::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 20px;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-left: 1px solid #e5e7eb;
+            border-top: 1px solid #e5e7eb;
+            transform: rotate(45deg);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .obs-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            background: transparent;
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        /* Estilos da tela de login */
+        #telaLogin {
+            transition: opacity 0.4s ease;
+        }
+        #telaLogin.hidden {
+            display: none;
+        }
+        .spinner {
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Tela de Login -->
+    <div id="telaLogin" class="fixed inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8">
+            <div class="text-center mb-8">
+                <div class="text-5xl mb-4">📱</div>
+                <h1 class="text-2xl font-bold text-gray-800">Sistema de Chromebooks</h1>
+                <p class="text-gray-500 text-sm mt-1">Faça login para continuar</p>
+            </div>
+            <form id="formLogin" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                    <input type="email" id="loginEmail" required
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="seu@email.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Senha</label>
+                    <input type="password" id="loginSenha" required
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Sua senha">
+                </div>
+                <div id="loginErro" class="text-red-600 text-sm font-medium hidden"></div>
+                <button type="submit" id="btnLogin"
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-2.5 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all">
+                    Entrar
+                </button>
+            </form>
+            <p class="text-center text-xs text-gray-400 mt-6">
+                Sistema de Agendamento de Chromebooks Escolares
+            </p>
+        </div>
+    </div>
+
+    <!-- App principal (inicialmente oculto) -->
+    <div id="appContainer" class="hidden">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Cabeçalho -->
+        <div class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">📱 Sistema de Chromebooks</h1>
+            <p class="text-gray-600">Gerencie agendamentos de forma eficiente e colaborativa</p>
+            <div class="inline-block bg-white rounded-full px-4 py-1 mt-2 shadow-sm">
+                <span class="text-sm font-semibold text-gray-700">🎯 Limite: 36 unidades por período</span>
+            </div>
+        </div>
+
+        <!-- Indicador de Última Atualização -->
+        <div class="mb-4 text-right text-sm text-gray-500" id="ultimaAtualizacao">
+            Última atualização: agora
+        </div>
+
+        <!-- Seletor de Data para Visualização -->
+        <div class="mb-6 bg-white rounded-lg shadow-lg p-4">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center space-x-4">
+                    <label class="font-semibold text-gray-700">📅 Visualizar disponibilidade para:</label>
+                    <input type="date" id="dataVisualizacao" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="text-sm text-gray-600">
+                    💡 Dica: Selecione uma data para ver a disponibilidade específica daquele dia
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Disponibilidade por DATA -->
+        <div class="mb-8 overflow-x-auto bg-white rounded-lg shadow-lg">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gradient-to-r from-blue-600 to-indigo-600">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Horário</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Disponibilidade</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaHorarios" class="bg-white divide-y divide-gray-200"></tbody>
+            </table>
+        </div>
+
+        <!-- Tabs de Navegação -->
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="flex space-x-4">
+                <button onclick="showTab('agendar')" class="tab-btn py-2 px-4 font-semibold text-gray-600 hover:text-blue-600 border-b-2 border-transparent transition-all" data-tab="agendar">
+                    ➕ Novo Agendamento
+                </button>
+                <button onclick="showTab('listar')" class="tab-btn py-2 px-4 font-semibold text-gray-600 hover:text-blue-600 border-b-2 border-transparent transition-all" data-tab="listar">
+                    📋 Lista de Agendamentos
+                </button>
+                <button onclick="showTab('turmas')" class="tab-btn py-2 px-4 font-semibold text-gray-600 hover:text-blue-600 border-b-2 border-transparent transition-all" data-tab="turmas">
+                    🏫 Gerenciar Turmas
+                </button>
+                <button id="tabBtnUsuarios" onclick="showTab('usuarios')" class="tab-btn py-2 px-4 font-semibold text-gray-600 hover:text-blue-600 border-b-2 border-transparent transition-all hidden" data-tab="usuarios">
+                    👥 Gerenciar Usuários
+                </button>
+            </nav>
+        </div>
+
+        <!-- Conteúdo das Tabs -->
+        <div id="tabAgendar" class="tab-content"></div>
+        <div id="tabListar" class="tab-content hidden"></div>
+        <div id="tabTurmas" class="tab-content hidden"></div>
+        <div id="tabUsuarios" class="tab-content hidden"></div>
+    </div>
+
+    <!-- Modal para Adicionar/Editar Turma -->
+    <div id="turmaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 rounded-t-lg">
+                <h3 id="modalTitle" class="text-xl font-bold text-white">Adicionar Nova Turma</h3>
+            </div>
+            <div class="p-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Nome da Turma</label>
+                <input type="text" id="turmaNome" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Ex: 5° Ano A">
+                <div id="modalError" class="error-message mt-2"></div>
+            </div>
+            <div class="flex gap-3 p-6 pt-0">
+                <button onclick="salvarTurma()" class="flex-1 bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-all">
+                    Salvar
+                </button>
+                <button onclick="fecharModal()" class="flex-1 bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-300 transition-all">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Criar Usuário -->
+    <div id="usuarioModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 rounded-t-lg">
+                <h3 id="usuarioModalTitle" class="text-xl font-bold text-white">Cadastrar Novo Usuário</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nome completo *</label>
+                    <input type="text" id="usuarioNome" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Nome do professor">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
+                    <input type="email" id="usuarioEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="email@escola.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Senha *</label>
+                    <input type="password" id="usuarioSenha" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Mínimo 6 caracteres">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Perfil *</label>
+                    <select id="usuarioRole" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                        <option value="professor">Professor</option>
+                        <option value="coordenador">Coordenador</option>
+                    </select>
+                </div>
+                <div id="usuarioModalError" class="error-message"></div>
+            </div>
+            <div class="flex gap-3 p-6 pt-0">
+                <button onclick="salvarUsuario()" class="flex-1 bg-purple-600 text-white font-semibold py-2 rounded-lg hover:bg-purple-700 transition-all">
+                    Cadastrar
+                </button>
+                <button onclick="fecharUsuarioModal()" class="flex-1 bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-300 transition-all">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Cancelamento -->
+    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 rounded-t-lg">
+                <h3 class="text-xl font-bold text-white">Confirmar Cancelamento</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-700 mb-4">Tem certeza que deseja cancelar este agendamento?</p>
+                <p class="text-sm text-gray-500" id="confirmMessage"></p>
+            </div>
+            <div class="flex gap-3 p-6 pt-0">
+                <button onclick="confirmarCancelamento()" class="flex-1 bg-red-600 text-white font-semibold py-2 rounded-lg hover:bg-red-700 transition-all">
+                    Sim, Cancelar
+                </button>
+                <button onclick="fecharConfirmModal()" class="flex-1 bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-300 transition-all">
+                    Não, Manter
+                </button>
+            </div>
+        </div>
+    </div> <!-- Fim do container principal -->
+    </div> <!-- Fim do appContainer -->
+
+    <!-- Sistema de Notificações -->
+    <div id="notificationContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        // ==================== CONFIGURAÇÕES ====================
+        const API_BASE = window.location.origin + "/api";
+        const HORARIOS = [
+            { nome: "1º Horário (07:00 - 07:50)", inicio: "07:00", fim: "07:50" },
+            { nome: "2º Horário (07:50 - 08:40)", inicio: "07:50", fim: "08:40" },
+            { nome: "3º Horário (09:00 - 09:50)", inicio: "09:00", fim: "09:50" },
+            { nome: "4º Horário (09:50 - 10:40)", inicio: "09:50", fim: "10:40" },
+            { nome: "5º Horário (10:40 - 11:30)", inicio: "10:40", fim: "11:30" },
+            { nome: "6º Horário (12:20 - 13:10)", inicio: "12:20", fim: "13:10" },
+            { nome: "7º Horário (13:10 - 14:00)", inicio: "13:10", fim: "14:00" }
+        ];
+
+        const LIMITE_TOTAL = 36;
+        const TOKEN_KEY = 'chromebook_token';
+
+        let agendamentoParaCancelar = null;
+        let modoEdicao = false;
+        let turmaEditando = null;
+        let filtroData = '';
+        let filtroProfessor = '';
+
+        // ==================== API CLIENT ====================
+
+        // Cliente HTTP genérico com token JWT
+        const api = {
+            _headers() {
+                const headers = { "Content-Type": "application/json" };
+                const token = localStorage.getItem(TOKEN_KEY);
+                if (token) headers["Authorization"] = "Bearer " + token;
+                return headers;
+            },
+            async get(url) {
+                const res = await fetch(API_BASE + url, { headers: this._headers() });
+                if (res.status === 401) { logout(); throw new Error("Sessão expirada"); }
+                if (!res.ok) { const e = await res.json(); throw new Error(e.mensagem || e.erro || "Erro na requisição"); }
+                return res.json();
+            },
+            async post(url, data) {
+                const res = await fetch(API_BASE + url, { method: "POST", headers: this._headers(), body: JSON.stringify(data) });
+                if (res.status === 401) { logout(); throw new Error("Sessão expirada"); }
+                if (!res.ok) { const e = await res.json(); throw new Error(e.mensagem || e.erro || "Erro na requisição"); }
+                return res.json();
+            },
+            async put(url, data) {
+                const res = await fetch(API_BASE + url, { method: "PUT", headers: this._headers(), body: data ? JSON.stringify(data) : undefined });
+                if (res.status === 401) { logout(); throw new Error("Sessão expirada"); }
+                if (!res.ok) { const e = await res.json(); throw new Error(e.mensagem || e.erro || "Erro na requisição"); }
+                return res.json();
+            },
+            async del(url) {
+                const res = await fetch(API_BASE + url, { method: "DELETE", headers: this._headers() });
+                if (res.status === 401) { logout(); throw new Error("Sessão expirada"); }
+                if (!res.ok) { const e = await res.json(); throw new Error(e.mensagem || e.erro || "Erro na requisição"); }
+                return res.json();
+            }
+        };
+
+        // ==================== AUTENTICAÇÃO ====================
+
+        // Retorna dados do usuário logado do JWT decodificado
+        function getUsuario() {
+            const token = localStorage.getItem(TOKEN_KEY);
+            if (!token) return null;
+            try {
+                const payload = JSON.parse(atob(token.split(".")[1]));
+                return { id: payload.id, nome: payload.nome, email: payload.email, role: payload.role };
+            } catch { return null; }
+        }
+
+        function isCoordenador() {
+            const u = getUsuario();
+            return u && u.role === "coordenador";
+        }
+
+        function logout() {
+            localStorage.removeItem(TOKEN_KEY);
+            document.getElementById("appContainer").classList.add("hidden");
+            document.getElementById("telaLogin").classList.remove("hidden");
+            document.getElementById("loginEmail").value = "";
+            document.getElementById("loginSenha").value = "";
+        }
+
+        // ==================== SISTEMA DE NOTIFICAÇÕES ====================
+        
+        function showNotification(message, type = 'success', duration = 3000) {
+            const container = document.getElementById('notificationContainer');
+            if (!container) return;
+            
+            const notification = document.createElement('div');
+            const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+            const colors = {
+                success: 'border-green-500 bg-green-50',
+                error: 'border-red-500 bg-red-50',
+                warning: 'border-yellow-500 bg-yellow-50',
+                info: 'border-blue-500 bg-blue-50'
+            };
+            const textColors = {
+                success: 'text-green-800',
+                error: 'text-red-800',
+                warning: 'text-yellow-800',
+                info: 'text-blue-800'
+            };
+            
+            notification.className = `notification ${colors[type]} border-l-4 rounded-lg shadow-lg p-4 min-w-[300px] transform transition-all duration-300`;
+            notification.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="text-2xl">${icons[type]}</div>
+                    <div class="flex-1">
+                        <p class="font-semibold ${textColors[type]}">${type === 'success' ? 'Sucesso!' : type === 'error' ? 'Erro!' : type === 'warning' ? 'Atenção!' : 'Informação'}</p>
+                        <p class="text-sm text-gray-600">${message}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, duration);
+        }
+
+        // ==================== FUNÇÕES DE GERENCIAMENTO DE TURMAS (via API) ====================
+        
+        // Busca lista de turmas da API
+        async function carregarTurmas() {
+            try {
+                return await api.get("/turmas");
+            } catch (error) {
+                console.error("Erro ao carregar turmas:", error);
+                return [];
+            }
+        }
+
+        // Cria uma turma via API
+        async function adicionarTurma(nomeTurma) {
+            try {
+                const result = await api.post("/turmas", { nome: nomeTurma });
+                showNotification(`Turma "${nomeTurma}" adicionada com sucesso!`, 'success');
+
+                // Atualiza UI se necessário
+                if (document.getElementById('formAgendamento')) await atualizarGridTurmas();
+                const tabTurmas = document.getElementById('tabTurmas');
+                if (tabTurmas && !tabTurmas.classList.contains('hidden')) {
+                    tabTurmas.innerHTML = await renderizarGerenciadorTurmas();
+                }
+                return { sucesso: true };
+            } catch (error) {
+                showNotification(error.message, 'error');
+                return { sucesso: false, mensagem: error.message };
+            }
+        }
+
+        // Edita uma turma via API
+        async function editarTurma(id, nomeNovo) {
+            try {
+                await api.put("/turmas/" + id, { nome: nomeNovo });
+                showNotification(`Turma editada para "${nomeNovo}"!`, 'success');
+                document.getElementById('tabTurmas').innerHTML = await renderizarGerenciadorTurmas();
+                if (document.getElementById('formAgendamento')) await atualizarGridTurmas();
+                return { sucesso: true };
+            } catch (error) {
+                showNotification(error.message, 'error');
+                return { sucesso: false };
+            }
+        }
+
+        // Remove uma turma via API
+        async function removerTurma(id) {
+            try {
+                await api.del("/turmas/" + id);
+                showNotification('Turma removida com sucesso!', 'success');
+                document.getElementById('tabTurmas').innerHTML = await renderizarGerenciadorTurmas();
+                if (document.getElementById('formAgendamento')) await atualizarGridTurmas();
+                return { sucesso: true };
+            } catch (error) {
+                showNotification(error.message, 'error');
+                return { sucesso: false };
+            }
+        }
+
+        // ==================== FUNÇÕES DE PERSISTÊNCIA (via API) ====================
+        
+        // Busca disponibilidade de uma data via API
+        async function getDisponibilidade(data) {
+            try {
+                const result = await api.get("/disponibilidade?data=" + data);
+                return result.disponibilidade || {};
+            } catch (error) {
+                console.error("Erro ao buscar disponibilidade:", error);
+                const disp = {};
+                HORARIOS.forEach(h => { disp[h.nome] = LIMITE_TOTAL; });
+                return disp;
+            }
+        }
+
+        // Verifica disponibilidade via API
+        async function verificarDisponibilidade(data, horarioRetirada, horarioDevolucao, quantidade) {
+            const disponibilidade = await getDisponibilidade(data);
+            const faltas = [];
+
+            const dispRetirada = disponibilidade[horarioRetirada];
+            if (dispRetirada !== undefined && dispRetirada < quantidade) {
+                faltas.push(horarioRetirada + " (disponível: " + dispRetirada + "/" + quantidade + ")");
+            }
+
+            if (horarioDevolucao !== horarioRetirada) {
+                const dispDevolucao = disponibilidade[horarioDevolucao];
+                if (dispDevolucao !== undefined && dispDevolucao < quantidade) {
+                    faltas.push(horarioDevolucao + " (disponível: " + dispDevolucao + "/" + quantidade + ")");
+                }
+            }
+
+            return {
+                disponivel: faltas.length === 0,
+                mensagem: faltas.length === 0 ? "Disponível" : "Capacidade insuficiente em: " + faltas.join(", ")
+            };
+        }
+
+        // Cria um agendamento via API
+        async function adicionarAgendamento(dados) {
+            try {
+                const result = await api.post("/agendamentos", dados);
+                showNotification("Agendamento realizado com sucesso!", 'success');
+                await atualizarInterface();
+                return { sucesso: true };
+            } catch (error) {
+                showNotification(error.message, 'error');
+                return { sucesso: false };
+            }
+        }
+
+        // Cancela um agendamento via API
+        async function cancelarAgendamento(id) {
+            try {
+                await api.put("/agendamentos/" + id + "/cancelar");
+                showNotification("Agendamento cancelado com sucesso!", 'warning');
+                await atualizarInterface();
+                return { sucesso: true };
+            } catch (error) {
+                showNotification(error.message, 'error');
+                return { sucesso: false };
+            }
+        }
+
+        // Busca lista de agendamentos da API (com filtros)
+        async function listarAgendamentos(params) {
+            try {
+                let url = "/agendamentos";
+                if (params) {
+                    const qs = Object.entries(params)
+                        .filter(([_, v]) => v)
+                        .map(([k, v]) => k + "=" + encodeURIComponent(v))
+                        .join("&");
+                    if (qs) url += "?" + qs;
+                }
+                return await api.get(url);
+            } catch (error) {
+                console.error("Erro ao listar agendamentos:", error);
+                return [];
+            }
+        }
+
+        // ==================== FUNÇÕES DE INTERFACE ====================
+        
+        function atualizarTimestamp() {
+            const agora = new Date();
+            const horaFormatada = agora.toLocaleTimeString('pt-BR');
+            const dataFormatada = agora.toLocaleDateString('pt-BR');
+            const timestamp = document.getElementById('ultimaAtualizacao');
+            if (timestamp) {
+                timestamp.innerHTML = '🔄 Última atualização: ' + dataFormatada + ' ' + horaFormatada;
+            }
+        }
+        
+        // Renderiza a tabela de horários com disponibilidade da API
+        async function renderizarTabelaHorarios() {
+            const dataSelecionada = document.getElementById('dataVisualizacao').value;
+            const tbody = document.getElementById('tabelaHorarios');
+            if (!tbody) return;
+            if (!dataSelecionada) {
+                tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-gray-500">📅 Selecione uma data acima para visualizar a disponibilidade</td></tr>';
+                return;
+            }
+            const disponibilidade = await getDisponibilidade(dataSelecionada);
+            tbody.innerHTML = HORARIOS.map(horario => {
+                const disponivel = disponibilidade[horario.nome] !== undefined ? disponibilidade[horario.nome] : LIMITE_TOTAL;
+                const status = disponivel > 0;
+                const statusText = status ? 'Disponível' : 'Lotado';
+                const statusColor = status ? 'text-green-600' : 'text-red-600';
+                const statusBg = status ? 'bg-green-100' : 'bg-red-100';
+                const porcentagem = (disponivel / LIMITE_TOTAL) * 100;
+                const barraColor = disponivel > 10 ? 'bg-green-500' : (disponivel > 5 ? 'bg-yellow-500' : 'bg-red-500');
+                return `
+                    <tr class="hover:bg-gray-50 transition-all">
+                        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-bold text-gray-900">${horario.nome}</div></td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-2xl font-bold ${statusColor}">${disponivel}</span>
+                                <span class="text-sm text-gray-500">/ ${LIMITE_TOTAL}</span>
+                                <div class="flex-1 max-w-xs">
+                                    <div class="bg-gray-200 rounded-full h-2 overflow-hidden">
+                                        <div class="${barraColor} h-2 rounded-full transition-all" style="width: ${porcentagem}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusBg} ${statusColor}">${statusText}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            atualizarTimestamp();
+        }
+        
+        function onDataVisualizacaoChange() {
+            renderizarTabelaHorarios();
+        }
+
+        // ==================== FUNÇÕES DE EXPORTAÇÃO E FILTROS ====================
+        
+        function formatarData(dataString) {
+            const data = new Date(dataString + "T12:00:00");
+            return data.toLocaleDateString('pt-BR');
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Popup de observações — abre mini janela ao clicar, fecha ao clicar fora
+        document.addEventListener('click', function(e) {
+            const trigger = e.target.closest('.obs-trigger');
+            if (trigger) {
+                e.stopPropagation();
+                fecharPopupObservacao();
+                const texto = decodeURIComponent(trigger.dataset.obs);
+                if (!texto) return;
+                abrirPopupObservacao(trigger, texto);
+                return;
+            }
+            fecharPopupObservacao();
+        });
+
+        function abrirPopupObservacao(el, texto) {
+            const overlay = document.createElement('div');
+            overlay.className = 'obs-overlay';
+            overlay.id = 'obsOverlay';
+            overlay.addEventListener('click', fecharPopupObservacao);
+
+            const popup = document.createElement('div');
+            popup.className = 'obs-popup';
+            popup.id = 'obsPopup';
+            popup.textContent = texto;
+
+            const rect = el.getBoundingClientRect();
+            const popupTop = rect.bottom + 8;
+            const popupLeft = Math.max(8, Math.min(rect.left, window.innerWidth - 370));
+
+            popup.style.top = popupTop + 'px';
+            popup.style.left = popupLeft + 'px';
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(popup);
+        }
+
+        function fecharPopupObservacao() {
+            const popup = document.getElementById('obsPopup');
+            const overlay = document.getElementById('obsOverlay');
+            if (popup) popup.remove();
+            if (overlay) overlay.remove();
+        }
+        
+        // Exportar CSV via backend
+        window.exportarAgendamentos = async function() {
+            try {
+                const token = localStorage.getItem(TOKEN_KEY);
+                let url = API_BASE + "/agendamentos/export";
+                const params = [];
+                if (filtroData) params.push("data=" + encodeURIComponent(filtroData));
+                if (params.length) url += "?" + params.join("&");
+
+                const res = await fetch(url, { headers: { "Authorization": "Bearer " + token } });
+                if (res.status === 401) { logout(); return; }
+                if (!res.ok) { const e = await res.json(); showNotification(e.mensagem || "Erro ao exportar", 'error'); return; }
+
+                const blob = await res.blob();
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = "agendamentos_" + (filtroData || "todos") + ".csv";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+                showNotification("CSV exportado com sucesso!", 'success');
+            } catch (error) {
+                showNotification("Erro ao exportar: " + error.message, 'error');
+            }
+        };
+        
+        // Atualiza a tabela de agendamentos com dados da API
+        async function atualizarTabelaAgendamentos() {
+            const params = { status: "ativo" };
+            if (filtroData) params.data = filtroData;
+            
+            const agendamentos = await listarAgendamentos(params);
+            
+            const containerTabela = document.getElementById('tabelaAgendamentosContainer');
+            if (!containerTabela) return;
+            
+            if (agendamentos.length === 0) {
+                containerTabela.innerHTML = `
+                    <div class="text-center py-12">
+                        <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-gray-500 text-lg mb-2">Nenhum agendamento encontrado</p>
+                        <p class="text-sm text-gray-400">${filtroData ? 'Tente outra data ou ' : ''}Clique em "Novo Agendamento" para começar</p>
+                    </div>
+                `;
+                const totalSpan = document.getElementById('totalAgendamentos');
+                if (totalSpan) totalSpan.textContent = "0";
+                return;
+            }
+            
+            // Agrupa por data
+            const agendamentosPorData = {};
+            agendamentos.forEach(ag => {
+                const dataStr = ag.data ? ag.data.split("T")[0] : "";
+                if (!agendamentosPorData[dataStr]) agendamentosPorData[dataStr] = [];
+                agendamentosPorData[dataStr].push(ag);
+            });
+            
+            let html = '';
+            const datasOrdenadas = Object.keys(agendamentosPorData).sort();
+            for (const data of datasOrdenadas) {
+                const ags = agendamentosPorData[data];
+                const dataFormatada = formatarData(data);
+                html += `
+                    <div class="mb-8 last:mb-0">
+                        <div class="bg-gray-100 rounded-lg px-4 py-2 mb-3">
+                            <h3 class="font-bold text-gray-700">📅 ${dataFormatada}</h3>
+                            <p class="text-xs text-gray-500">${ags.length} agendamento(s)</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Professor</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Turma</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retirada</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Devolução</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observações</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                `;
+                for (const ag of ags) {
+                    const nomeProfessor = ag.professor ? ag.professor.nome || ag.professor : "-";
+                    const nomeTurma = ag.turma ? ag.turma.nome || ag.turma : "-";
+                    const dataExibida = ag.data ? formatarData(ag.data.split("T")[0]) : "-";
+                    html += `
+                        <tr class="agendamento-row hover:bg-gray-50 transition-all">
+                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">📅 ${dataExibida}</div></td>
+                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm text-gray-600">${escapeHtml(nomeProfessor)}</div></td>
+                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm text-gray-600">${escapeHtml(nomeTurma)}</div></td>
+                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm text-gray-600"><span class="font-semibold text-blue-600">${ag.quantidade}</span> unidades</div></td>
+                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm text-gray-600">${escapeHtml(ag.horarioRetirada)}</div></td>
+                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm text-gray-600">${escapeHtml(ag.horarioDevolucao)}</div></td>
+                            <td class="px-4 py-3 relative">
+                                <div class="text-sm text-gray-600 max-w-xs truncate cursor-pointer hover:text-blue-600 transition-all obs-trigger" 
+                                     data-obs="${encodeURIComponent(ag.observacoes || '')}" 
+                                     title="Clique para expandir">
+                                    ${ag.observacoes ? escapeHtml(ag.observacoes) : '<span class="text-gray-400">—</span>'}
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                ${(() => {
+                                    const user = getUsuario();
+                                    const podeCancelar = user && (user.role === 'coordenador' || ag.professorId === user.id);
+                                    if (!podeCancelar) return '<span class="text-gray-400 text-sm">—</span>';
+                                    return '<button onclick="abrirModalCancelarObjeto(' + ag.id + ')" class="text-red-600 hover:text-red-800 font-medium text-sm transition-all flex items-center gap-1">' +
+                                        '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>' +
+                                        '</svg>' +
+                                        ' Cancelar' +
+                                    '</button>';
+                                })()}
+                            </td>
+                        </tr>
+                    `;
+                }
+                html += '</tbody></table></div></div>';
+            }
+            
+            containerTabela.innerHTML = html;
+            const totalSpan = document.getElementById('totalAgendamentos');
+            if (totalSpan) totalSpan.textContent = agendamentos.length;
+        }
+        
+        // Função chamada quando o usuário digita no filtro de professor
+        window.onFiltroProfessorChange = function() {
+            const input = document.getElementById('filtroProfessor');
+            if (input) {
+                filtroProfessor = input.value.toLowerCase();
+                atualizarTabelaAgendamentos();
+            }
+        };
+        
+        // Função chamada quando o usuário seleciona uma data no filtro
+        window.onFiltroDataChange = function() {
+            const select = document.getElementById('filtroData');
+            if (select) {
+                filtroData = select.value;
+                atualizarTabelaAgendamentos();
+            }
+        };
+        
+        window.limparFiltros = function() {
+            filtroData = '';
+            filtroProfessor = '';
+            const inputData = document.getElementById('filtroData');
+            const inputProfessor = document.getElementById('filtroProfessor');
+            if (inputData) inputData.value = '';
+            if (inputProfessor) inputProfessor.value = '';
+            atualizarTabelaAgendamentos();
+            showNotification('Filtros limpos!', 'info');
+        };
+        
+        function abrirModalCancelar(agendamento) {
+            agendamentoParaCancelar = agendamento;
+            const confirmMessage = document.getElementById('confirmMessage');
+            if (confirmMessage) {
+                const nomeProfessor = agendamento.professor ? agendamento.professor.nome || agendamento.professor : "-";
+                const nomeTurma = agendamento.turma ? agendamento.turma.nome || agendamento.turma : "-";
+                confirmMessage.innerHTML = `
+                    <strong>Professor:</strong> ${escapeHtml(nomeProfessor)}<br>
+                    <strong>Turma:</strong> ${escapeHtml(nomeTurma)}<br>
+                    <strong>Data:</strong> ${formatarData(agendamento.data)}<br>
+                    <strong>Quantidade:</strong> ${agendamento.quantidade} chromebooks
+                `;
+            }
+            const modal = document.getElementById('confirmModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
+        }
+        
+        async function confirmarCancelamento() {
+            if (agendamentoParaCancelar) {
+                await cancelarAgendamento(agendamentoParaCancelar.id);
+            }
+            fecharConfirmModal();
+        }
+        
+        function fecharConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
+            agendamentoParaCancelar = null;
+        }
+        
+        window.abrirModalCancelarObjeto = async function(id) {
+            const agendamentos = await listarAgendamentos({ status: "ativo" });
+            const agendamento = agendamentos.find(ag => ag.id === id);
+            if (agendamento) abrirModalCancelar(agendamento);
+        };
+        
+        async function renderizarListaAgendamentos() {
+            const container = document.getElementById('tabListar');
+            if (!container) return;
+            
+            const agendamentos = await listarAgendamentos({ status: "ativo" });
+            const todasDatas = [...new Set(agendamentos.map(ag => ag.data ? ag.data.split("T")[0] : ""))].sort();
+            
+            const html = `
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                        <div class="flex justify-between items-center flex-wrap gap-4">
+                            <div>
+                                <h2 class="text-xl font-bold text-white">📋 Agendamentos Futuros</h2>
+                                <p class="text-blue-100 text-sm">Total: <span id="totalAgendamentos">0</span> agendamento(s) encontrado(s)</p>
+                            </div>
+                            ${isCoordenador() ? '<button onclick="window.exportarAgendamentos()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-all text-sm">📊 Exportar Lista</button>' : ''}
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Filtrar por Data</label>
+                                <select id="filtroData" onchange="window.onFiltroDataChange()" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                    <option value="">Todas as datas</option>
+                                    ${todasDatas.map(data => '<option value="' + data + '" ' + (filtroData === data ? 'selected' : '') + '>' + formatarData(data) + '</option>').join('')}
+                                </select>
+                            </div>
+                            ${isCoordenador() ? `
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Filtrar por Professor</label>
+                                <input type="text" id="filtroProfessor" onkeyup="window.onFiltroProfessorChange()" value="" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Digite o nome do professor...">
+                            </div>
+                            ` : '<div></div>'}
+                            <div class="flex items-end">
+                                <button onclick="window.limparFiltros()" class="w-full bg-gray-500 text-white font-semibold py-2 rounded-lg hover:bg-gray-600 transition-all">Limpar Filtros</button>
+                            </div>
+                        </div>
+                        <div id="tabelaAgendamentosContainer"></div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            await atualizarTabelaAgendamentos();
+        }
+        
+        // ==================== FORMULÁRIO ====================
+        
+        async function atualizarGridTurmas() {
+            const turmas = await carregarTurmas();
+            const gridTurmas = document.getElementById('gridTurmas');
+            if (gridTurmas) {
+                gridTurmas.innerHTML = turmas.map(t => 
+                    '<button type="button" onclick="selecionarTurma(\'' + t.nome.replace(/'/g, "\\'") + '\')" class="turma-option px-3 py-2 text-sm bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-lg text-gray-700 hover:text-blue-700 hover:border-blue-300 transition-all text-left">' + escapeHtml(t.nome) + '</button>'
+                ).join('');
+            }
+        }
+        
+        function selecionarTurma(turma) {
+            const inputTurma = document.getElementById('turma');
+            if (inputTurma) {
+                inputTurma.value = turma;
+                inputTurma.classList.add('border-green-500');
+                setTimeout(() => inputTurma.classList.remove('border-green-500'), 500);
+            }
+        }
+        
+        async function renderizarFormulario() {
+            const hoje = new Date().toISOString().split('T')[0];
+            const turmas = await carregarTurmas();
+            const usuario = getUsuario();
+            return `
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white">📝 Novo Agendamento de Chromebooks</h2>
+                        <p class="text-blue-100 text-sm">Preencha todos os campos obrigatórios (*)</p>
+                    </div>
+                    <form id="formAgendamento" class="p-6 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">👤 Professor</label>
+                                <div class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 font-medium">
+                                    ${escapeHtml(usuario ? usuario.nome : '')}
+                                </div>
+                                <input type="hidden" id="professor" value="${escapeHtml(usuario ? usuario.nome : '')}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Turma *</label>
+                                <input type="text" id="turma" name="turma" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Digite ou selecione uma turma abaixo">
+                                <div class="error-message" id="error-turma"></div>
+                                <div class="mt-3">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-xs font-semibold text-gray-500">📋 Turmas disponíveis (${turmas.length}):</label>
+                                        ${isCoordenador() ? '<button type="button" onclick="showTab(\'turmas\')" class="text-xs text-blue-600 hover:text-blue-800 font-semibold">Gerenciar Turmas →</button>' : ''}
+                                    </div>
+                                    <div id="gridTurmas" class="grid grid-cols-3 sm:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-1">
+                                        ${turmas.map(t => 
+                                            '<button type="button" onclick="selecionarTurma(\'' + t.nome.replace(/'/g, "\\'") + '\')" class="turma-option px-3 py-2 text-sm bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-lg text-gray-700 hover:text-blue-700 hover:border-blue-300 transition-all text-left">' + escapeHtml(t.nome) + '</button>'
+                                        ).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Quantidade de Chromebooks * (1 a ${LIMITE_TOTAL})</label>
+                                <input type="number" id="quantidade" name="quantidade" required min="1" max="${LIMITE_TOTAL}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Número de unidades">
+                                <div class="error-message" id="error-quantidade"></div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Data do Agendamento *</label>
+                                <input type="date" id="data" name="data" required min="${hoje}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                <div class="error-message" id="error-data"></div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Horário de Retirada *</label>
+                                <select id="horarioRetirada" name="horarioRetirada" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                    <option value="">Selecione...</option>
+                                    ${HORARIOS.map(h => `<option value="${h.nome}">${h.nome}</option>`).join('')}
+                                </select>
+                                <div class="error-message" id="error-horarioRetirada"></div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Horário de Devolução *</label>
+                                <select id="horarioDevolucao" name="horarioDevolucao" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                    <option value="">Selecione...</option>
+                                    ${HORARIOS.map(h => `<option value="${h.nome}">${h.nome}</option>`).join('')}
+                                </select>
+                                <div class="error-message" id="error-horarioDevolucao"></div>
+                                <p class="text-xs text-gray-500 mt-1">💡 Pode ser o mesmo horário da retirada (uso durante a aula)</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Observações (opcional)</label>
+                                <textarea id="observacoes" name="observacoes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Informações adicionais..."></textarea>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 pt-4">
+                            <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105">📅 Agendar Chromebooks</button>
+                            <button type="button" onclick="limparFormulario()" class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all">Limpar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+        }
+        
+        function limparFormulario() {
+            const campos = ['turma', 'quantidade', 'data', 'horarioRetirada', 'horarioDevolucao', 'observacoes'];
+            campos.forEach(campo => {
+                const el = document.getElementById(campo);
+                if (el) el.value = '';
+            });
+            // Restaura o campo professor com o nome do usuário logado (nunca deve ficar vazio)
+            const professorInput = document.getElementById('professor');
+            const usuario = getUsuario();
+            if (professorInput && usuario) {
+                professorInput.value = usuario.nome;
+            }
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('input, select').forEach(el => el.classList.remove('input-error'));
+        }
+        
+        function limparErros() {
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('input, select').forEach(el => el.classList.remove('input-error'));
+        }
+        
+        // Handler do formulário de agendamento — agora assíncrono com API
+        async function handleSubmit(event) {
+            event.preventDefault();
+            limparErros();
+            const professor = document.getElementById('professor').value.trim();
+            const turmaNome = document.getElementById('turma').value.trim();
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const data = document.getElementById('data').value;
+            const horarioRetirada = document.getElementById('horarioRetirada').value;
+            const horarioDevolucao = document.getElementById('horarioDevolucao').value;
+            const observacoes = document.getElementById('observacoes').value.trim();
+            
+            let isValid = true;
+            if (!professor) {
+                document.getElementById('error-professor').textContent = 'Nome do professor é obrigatório';
+                document.getElementById('professor').classList.add('input-error');
+                isValid = false;
+            }
+            if (!turmaNome) {
+                document.getElementById('error-turma').textContent = 'Turma é obrigatória';
+                document.getElementById('turma').classList.add('input-error');
+                isValid = false;
+            }
+            if (isNaN(quantidade) || quantidade < 1 || quantidade > LIMITE_TOTAL) {
+                document.getElementById('error-quantidade').textContent = 'Quantidade deve ser entre 1 e ' + LIMITE_TOTAL;
+                document.getElementById('quantidade').classList.add('input-error');
+                isValid = false;
+            }
+            if (!data) {
+                document.getElementById('error-data').textContent = 'Data é obrigatória';
+                document.getElementById('data').classList.add('input-error');
+                isValid = false;
+            } else {
+                const dataSelecionada = new Date(data + "T12:00:00");
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                if (dataSelecionada < hoje) {
+                    document.getElementById('error-data').textContent = 'Data não pode ser no passado';
+                    document.getElementById('data').classList.add('input-error');
+                    isValid = false;
+                }
+            }
+            if (!horarioRetirada) {
+                document.getElementById('error-horarioRetirada').textContent = 'Selecione o horário de retirada';
+                document.getElementById('horarioRetirada').classList.add('input-error');
+                isValid = false;
+            }
+            if (!horarioDevolucao) {
+                document.getElementById('error-horarioDevolucao').textContent = 'Selecione o horário de devolução';
+                document.getElementById('horarioDevolucao').classList.add('input-error');
+                isValid = false;
+            }
+            if (!isValid) return;
+            
+            // Busca o ID da turma pelo nome
+            const turmas = await carregarTurmas();
+            const turmaEncontrada = turmas.find(t => t.nome === turmaNome);
+            if (!turmaEncontrada) {
+                showNotification('Turma "' + turmaNome + '" não encontrada. Selecione uma turma da lista.', 'error');
+                return;
+            }
+            
+            // Verifica disponibilidade
+            const disponibilidade = await verificarDisponibilidade(data, horarioRetirada, horarioDevolucao, quantidade);
+            if (!disponibilidade.disponivel) {
+                showNotification(disponibilidade.mensagem, 'error');
+                return;
+            }
+            
+            // Cria o agendamento via API
+            const novoAgendamento = {
+                turmaId: turmaEncontrada.id,
+                quantidade,
+                data,
+                horarioRetirada,
+                horarioDevolucao,
+                observacoes
+            };
+            
+            const resultado = await adicionarAgendamento(novoAgendamento);
+            if (resultado.sucesso) {
+                // Sincroniza a data de visualização com a data do agendamento criado
+                document.getElementById('dataVisualizacao').value = data;
+                await renderizarTabelaHorarios();
+                limparFormulario();
+            }
+        }
+        
+        // Atualiza todos os componentes da interface
+        async function atualizarInterface() {
+            await renderizarTabelaHorarios();
+            if (document.getElementById('tabListar')) {
+                await renderizarListaAgendamentos();
+            }
+            atualizarTimestamp();
+        }
+        
+        // Navegação entre abas
+        async function showTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.add('hidden'));
+            if (tabId === 'agendar') {
+                document.getElementById('tabAgendar').classList.remove('hidden');
+                if (document.getElementById('formAgendamento')) await atualizarGridTurmas();
+            } else if (tabId === 'listar') {
+                await renderizarListaAgendamentos();
+                document.getElementById('tabListar').classList.remove('hidden');
+            } else if (tabId === 'turmas') {
+                document.getElementById('tabTurmas').innerHTML = await renderizarGerenciadorTurmas();
+                document.getElementById('tabTurmas').classList.remove('hidden');
+            } else if (tabId === 'usuarios') {
+                document.getElementById('tabUsuarios').innerHTML = await renderizarGerenciadorUsuarios();
+                document.getElementById('tabUsuarios').classList.remove('hidden');
+            }
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-600');
+            });
+            const activeBtn = document.querySelector('[data-tab="' + tabId + '"]');
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-gray-600');
+                activeBtn.classList.add('border-blue-500', 'text-blue-600');
+            }
+        }
+        
+        // Renderiza o gerenciador de turmas (com dados da API)
+        async function renderizarGerenciadorTurmas() {
+            const turmas = await carregarTurmas();
+            return `
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex justify-between items-center flex-wrap gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">🏫 Gerenciar Turmas</h2>
+                            <p class="text-blue-100 text-sm">Adicione, edite ou remova turmas do sistema</p>
+                        </div>
+                        ${isCoordenador() ? '<button onclick="abrirModalAdicionar()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-all">+ Nova Turma</button>' : ''}
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4 text-sm text-gray-600">📊 Total de turmas cadastradas: <strong>${turmas.length}</strong></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            ${turmas.map(t => `
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-all">
+                                    <span class="font-medium text-gray-700">${escapeHtml(t.nome)}</span>
+                                    ${isCoordenador() ? `
+                                    <div class="flex gap-2">
+                                        <button onclick="abrirModalEditar(${t.id}, '${escapeHtml(t.nome).replace(/'/g, "\\'")}')" class="text-blue-600 hover:text-blue-800 transition-all" title="Editar">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        </button>
+                                        <button onclick="confirmarRemoverTurma(${t.id}, '${escapeHtml(t.nome).replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800 transition-all" title="Remover">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${turmas.length === 0 ? '<div class="text-center py-8 text-gray-500">Nenhuma turma cadastrada. Clique em "+ Nova Turma" para adicionar.</div>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Abre modal para adicionar turma
+        function abrirModalAdicionar() {
+            modoEdicao = false;
+            turmaEditando = null;
+            document.getElementById('modalTitle').textContent = 'Adicionar Nova Turma';
+            document.getElementById('turmaNome').value = '';
+            document.getElementById('modalError').textContent = '';
+            document.getElementById('turmaModal').classList.remove('hidden');
+            document.getElementById('turmaModal').style.display = 'flex';
+        }
+        
+        // Abre modal para editar turma (agora recebe id e nome)
+        function abrirModalEditar(id, nomeTurma) {
+            modoEdicao = true;
+            turmaEditando = { id, nome: nomeTurma };
+            document.getElementById('modalTitle').textContent = 'Editar Turma';
+            document.getElementById('turmaNome').value = nomeTurma;
+            document.getElementById('modalError').textContent = '';
+            document.getElementById('turmaModal').classList.remove('hidden');
+            document.getElementById('turmaModal').style.display = 'flex';
+        }
+        
+        function fecharModal() {
+            document.getElementById('turmaModal').classList.add('hidden');
+            document.getElementById('turmaModal').style.display = 'none';
+            modoEdicao = false;
+            turmaEditando = null;
+        }
+        
+        // Salva turma via API (cria ou edita)
+        async function salvarTurma() {
+            const nomeTurma = document.getElementById('turmaNome').value.trim();
+            if (!nomeTurma) {
+                document.getElementById('modalError').textContent = 'O nome da turma é obrigatório!';
+                return;
+            }
+            let resultado;
+            if (modoEdicao && turmaEditando) {
+                resultado = await editarTurma(turmaEditando.id, nomeTurma);
+            } else {
+                resultado = await adicionarTurma(nomeTurma);
+            }
+            if (resultado.sucesso) {
+                fecharModal();
+                document.getElementById('tabTurmas').innerHTML = await renderizarGerenciadorTurmas();
+                if (document.getElementById('formAgendamento')) await atualizarGridTurmas();
+            }
+        }
+        
+        // Confirma remoção de turma via API
+        async function confirmarRemoverTurma(id, nomeTurma) {
+            if (confirm('Tem certeza que deseja remover a turma "' + nomeTurma + '"?')) {
+                await removerTurma(id);
+            }
+        }
+        
+        // ==================== GERENCIAMENTO DE USUÁRIOS ====================
+
+        // Busca a lista de usuários da API (apenas coordenador)
+        async function listarUsuariosApi() {
+            try {
+                return await api.get("/auth/usuarios");
+            } catch (error) {
+                console.error("Erro ao listar usuários:", error);
+                return [];
+            }
+        }
+
+        // Exclui um usuário via API (apenas coordenador)
+        async function deletarUsuarioApi(id) {
+            try {
+                await api.del("/auth/usuarios/" + id);
+                showNotification("Usuário excluído com sucesso!", 'success');
+                return { sucesso: true };
+            } catch (error) {
+                showNotification(error.message, 'error');
+                return { sucesso: false, mensagem: error.message };
+            }
+        }
+
+        // Cadastra um novo usuário via API
+        async function cadastrarUsuario(nome, email, senha, role) {
+            try {
+                const result = await api.post("/auth/register", { nome, email, senha, role });
+                showNotification("Usuário '" + result.nome + "' cadastrado com sucesso!", 'success');
+                return { sucesso: true };
+            } catch (error) {
+                showNotification(error.message, 'error');
+                return { sucesso: false, mensagem: error.message };
+            }
+        }
+
+        // Renderiza a página de gerenciamento de usuários
+        async function renderizarGerenciadorUsuarios() {
+            const usuarios = await listarUsuariosApi();
+
+            return `
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex justify-between items-center flex-wrap gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">👥 Gerenciar Usuários</h2>
+                            <p class="text-purple-100 text-sm">Cadastre e visualize os usuários do sistema</p>
+                        </div>
+                        <button onclick="abrirUsuarioModal()" class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-purple-50 transition-all">+ Novo Usuário</button>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4 text-sm text-gray-600">📊 Total de usuários cadastrados: <strong>${usuarios.length}</strong></div>
+
+                        <!-- Filtros -->
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">🔍 Buscar por nome</label>
+                                <input type="text" id="filtroUsuarioNome" onkeyup="window.filtrarUsuarios()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Digite o nome do usuário...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">📧 Buscar por email</label>
+                                <input type="text" id="filtroUsuarioEmail" onkeyup="window.filtrarUsuarios()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Digite o email do usuário...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">📅 Filtrar por data de cadastro</label>
+                                <input type="date" id="filtroUsuarioData" onchange="window.filtrarUsuarios()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            </div>
+                        </div>
+
+                        <div id="tabelaUsuariosContainer">
+                            ${renderizarTabelaUsuarios(usuarios)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Renderiza apenas a tabela de usuários (usada para re-renderizar após filtro)
+        function renderizarTabelaUsuarios(usuarios) {
+            // Pega valores dos filtros
+            const searchNome = (document.getElementById('filtroUsuarioNome')?.value || '').toLowerCase().trim();
+            const searchEmail = (document.getElementById('filtroUsuarioEmail')?.value || '').toLowerCase().trim();
+            const filterData = document.getElementById('filtroUsuarioData')?.value || '';
+
+            // Filtra
+            let filtrados = usuarios;
+            if (searchNome) {
+                filtrados = filtrados.filter(u => u.nome.toLowerCase().includes(searchNome));
+            }
+            if (searchEmail) {
+                filtrados = filtrados.filter(u => u.email.toLowerCase().includes(searchEmail));
+            }
+            if (filterData) {
+                filtrados = filtrados.filter(u => {
+                    if (!u.createdAt) return false;
+                    const dataCadastro = u.createdAt.split('T')[0];
+                    return dataCadastro === filterData;
+                });
+            }
+
+            if (filtrados.length === 0) {
+                return '<div class="text-center py-8 text-gray-500">Nenhum usuário encontrado com esses filtros.</div>';
+            }
+
+            return `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Perfil</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cadastro</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${filtrados.map(u => `
+                                <tr class="hover:bg-gray-50 transition-all">
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-lg">${u.role === 'coordenador' ? '👑' : '👨‍🏫'}</span>
+                                            <span class="text-sm font-medium text-gray-900">${escapeHtml(u.nome)}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${escapeHtml(u.email)}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${u.role === 'coordenador' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
+                                            ${u.role === 'coordenador' ? 'Coordenador' : 'Professor'}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('pt-BR') : '-'}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        ${u.role !== 'coordenador' ? `
+                                        <button onclick="confirmarExcluirUsuario(${u.id}, '${escapeHtml(u.nome).replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800 font-medium text-sm transition-all flex items-center gap-1" title="Excluir usuário">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                            Excluir
+                                        </button>
+                                        ` : '<span class="text-gray-400 text-sm">—</span>'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Filtro de usuários — re-renderiza apenas a tabela (sem buscar da API novamente)
+        window.filtrarUsuarios = function() {
+            // A tabela já está renderizada, precisamos re-renderizar com os filtros atuais
+            // Como perdemos a lista original, vamos buscar da API novamente
+            (async () => {
+                const usuarios = await listarUsuariosApi();
+                const container = document.getElementById('tabelaUsuariosContainer');
+                if (container) {
+                    container.innerHTML = renderizarTabelaUsuarios(usuarios);
+                }
+            })();
+        };
+
+        // Abre modal para cadastrar novo usuário
+        function abrirUsuarioModal() {
+            document.getElementById('usuarioNome').value = '';
+            document.getElementById('usuarioEmail').value = '';
+            document.getElementById('usuarioSenha').value = '';
+            document.getElementById('usuarioRole').value = 'professor';
+            document.getElementById('usuarioModalError').textContent = '';
+            document.getElementById('usuarioModal').classList.remove('hidden');
+            document.getElementById('usuarioModal').style.display = 'flex';
+        }
+
+        function fecharUsuarioModal() {
+            document.getElementById('usuarioModal').classList.add('hidden');
+            document.getElementById('usuarioModal').style.display = 'none';
+        }
+
+        // Valida e salva um novo usuário
+        async function salvarUsuario() {
+            const nome = document.getElementById('usuarioNome').value.trim();
+            const email = document.getElementById('usuarioEmail').value.trim();
+            const senha = document.getElementById('usuarioSenha').value;
+            const role = document.getElementById('usuarioRole').value;
+            const erroEl = document.getElementById('usuarioModalError');
+
+            if (!nome || !email || !senha) {
+                erroEl.textContent = 'Todos os campos são obrigatórios!';
+                return;
+            }
+            if (senha.length < 6) {
+                erroEl.textContent = 'A senha deve ter no mínimo 6 caracteres!';
+                return;
+            }
+            if (!email.includes('@')) {
+                erroEl.textContent = 'Informe um email válido!';
+                return;
+            }
+
+            erroEl.textContent = '';
+            const resultado = await cadastrarUsuario(nome, email, senha, role);
+            if (resultado.sucesso) {
+                fecharUsuarioModal();
+                document.getElementById('tabUsuarios').innerHTML = await renderizarGerenciadorUsuarios();
+            }
+        }
+
+        // Confirma e executa a exclusão de um usuário
+        async function confirmarExcluirUsuario(id, nome) {
+            if (!confirm(`Tem certeza que deseja excluir o usuário "${nome}"? Esta ação não pode ser desfeita.`)) return;
+            
+            const resultado = await deletarUsuarioApi(id);
+            if (resultado.sucesso) {
+                document.getElementById('tabUsuarios').innerHTML = await renderizarGerenciadorUsuarios();
+            }
+        }
+
+        // Mostra/esconde o botão da aba de usuários conforme o perfil
+        function atualizarVisibilidadeAbaUsuarios() {
+            const btn = document.getElementById('tabBtnUsuarios');
+            if (btn) {
+                if (isCoordenador()) {
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            }
+        }
+
+        // Login: envia email+senha para API, salva token, mostra app
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const senha = document.getElementById('loginSenha').value;
+            const erroEl = document.getElementById('loginErro');
+            const btnLogin = document.getElementById('btnLogin');
+            
+            erroEl.classList.add('hidden');
+            btnLogin.disabled = true;
+            btnLogin.innerHTML = '<span class="spinner"></span> Entrando...';
+            
+            try {
+                const result = await api.post("/auth/login", { email, senha });
+                localStorage.setItem(TOKEN_KEY, result.token);
+                
+                // Mostra app
+                document.getElementById('telaLogin').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                
+                // Atualiza header com nome do usuário
+                const usuario = getUsuario();
+                const headerInfo = document.querySelector('.container .mb-8.text-center');
+                if (headerInfo && usuario) {
+                    const badge = document.createElement('div');
+                    badge.className = 'mt-2 flex items-center justify-center gap-2';
+                    badge.id = 'userBadge';
+                    badge.innerHTML = `
+                        <span class="inline-flex items-center gap-1 bg-white rounded-full px-4 py-1.5 shadow-sm text-sm">
+                            👤 ${escapeHtml(usuario.nome)}
+                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${usuario.role === 'coordenador' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${usuario.role === 'coordenador' ? 'Coordenador' : 'Professor'}</span>
+                            <button onclick="logout()" class="ml-2 text-red-500 hover:text-red-700 font-medium text-xs">Sair</button>
+                        </span>
+                    `;
+                    // Remove badge anterior se existir
+                    const old = document.getElementById('userBadge');
+                    if (old) old.remove();
+                    headerInfo.appendChild(badge);
+                }
+                
+                // Mostra botão da aba de usuários se for coordenador
+                atualizarVisibilidadeAbaUsuarios();
+                
+                await init();
+            } catch (error) {
+                erroEl.textContent = error.message || "Erro ao fazer login.";
+                erroEl.classList.remove('hidden');
+            } finally {
+                btnLogin.disabled = false;
+                btnLogin.innerHTML = 'Entrar';
+            }
+        }
+        
+        // ==================== INICIALIZAÇÃO ====================
+        
+        // Inicialização principal (chamada após login)
+        async function init() {
+            const hoje = new Date().toISOString().split('T')[0];
+            const dataVisualizacao = document.getElementById('dataVisualizacao');
+            if (dataVisualizacao) {
+                dataVisualizacao.value = hoje;
+                dataVisualizacao.addEventListener('change', onDataVisualizacaoChange);
+            }
+            await renderizarTabelaHorarios();
+            document.getElementById('tabAgendar').innerHTML = await renderizarFormulario();
+            const form = document.getElementById('formAgendamento');
+            if (form) form.addEventListener('submit', handleSubmit);
+            await renderizarListaAgendamentos();
+            document.getElementById('tabTurmas').innerHTML = await renderizarGerenciadorTurmas();
+            // Mostra/esconde aba de usuários conforme perfil
+            atualizarVisibilidadeAbaUsuarios();
+            if (isCoordenador()) {
+                document.getElementById('tabUsuarios').innerHTML = await renderizarGerenciadorUsuarios();
+            } else {
+                document.getElementById('tabUsuarios').innerHTML = '';
+            }
+            setTimeout(() => showNotification('Bem-vindo ao Sistema de Agendamento de Chromebooks!', 'info', 4000), 500);
+        }
+        
+        // Verifica se já está logado ao carregar a página
+        (function checkAuth() {
+            const token = localStorage.getItem(TOKEN_KEY);
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split(".")[1]));
+                    // Verifica se token não expirou
+                    if (payload.exp * 1000 > Date.now()) {
+                        // Token válido, mostra app
+                        document.getElementById('telaLogin').classList.add('hidden');
+                        document.getElementById('appContainer').classList.remove('hidden');
+                        
+                        // Adiciona badge do usuário
+                        const usuario = getUsuario();
+                        const headerInfo = document.querySelector('.container .mb-8.text-center');
+                        if (headerInfo && usuario) {
+                            const badge = document.createElement('div');
+                            badge.id = 'userBadge';
+                            badge.className = 'mt-2 flex items-center justify-center gap-2';
+                            badge.innerHTML = `
+                                <span class="inline-flex items-center gap-1 bg-white rounded-full px-4 py-1.5 shadow-sm text-sm">
+                                    👤 ${escapeHtml(usuario.nome)}
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${usuario.role === 'coordenador' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${usuario.role === 'coordenador' ? 'Coordenador' : 'Professor'}</span>
+                                    <button onclick="logout()" class="ml-2 text-red-500 hover:text-red-700 font-medium text-xs">Sair</button>
+                                </span>
+                            `;
+                            headerInfo.appendChild(badge);
+                        }
+                        
+                        atualizarVisibilidadeAbaUsuarios();
+                        init();
+                        return;
+                    }
+                } catch (e) {}
+            }
+            // Se não há token válido, tela de login já está visível
+            document.getElementById('telaLogin').classList.remove('hidden');
+        })();
+        
+        // Bind do formulário de login
+        document.getElementById('formLogin').addEventListener('submit', handleLogin);
+        
+        // Exportar funções globais necessárias
+        window.showTab = showTab;
+        window.confirmarCancelamento = confirmarCancelamento;
+        window.fecharConfirmModal = fecharConfirmModal;
+        window.limparFormulario = limparFormulario;
+        window.abrirModalAdicionar = abrirModalAdicionar;
+        window.abrirModalEditar = abrirModalEditar;
+        window.fecharModal = fecharModal;
+        window.salvarTurma = salvarTurma;
+        window.confirmarRemoverTurma = confirmarRemoverTurma;
+        window.logout = logout;
+        window.abrirUsuarioModal = abrirUsuarioModal;
+        window.fecharUsuarioModal = fecharUsuarioModal;
+        window.salvarUsuario = salvarUsuario;
+        window.confirmarExcluirUsuario = confirmarExcluirUsuario;
+    </script>
+</body>
+</html>
