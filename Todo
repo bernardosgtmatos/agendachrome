@@ -1,0 +1,4 @@
+1- ta tendo como duplicar os agendamento spamando o click, tentar resolver isso pode ser um saco, a IA pode achar que eu quero limitar a quantdade de agendamento por usuario, mas, eu posso adicionar uma lógica:
+nao pode existir um agendemanto exatamente igual na lista, mas isso nao resolve o problema por completo, agendamento por ter tudo igual e ser bloqueado de duplicar, mas se as obs for um carcter diferente ele ja ia permitir,
+posso falar para ignorar o campo de obs da comparação, mas sera que resolve o problema?
+
