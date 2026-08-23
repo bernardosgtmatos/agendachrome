@@ -1,6 +1,9 @@
 // Controlador de agendamentos: CRUD com regras de negócio
 
 const prisma = require("../lib/prisma");
+const { verificarDisponibilidade } = require("../services/disponibilidadeService");
+const { ROLES } = require("../config/constants");
+const { getLimiteChromebooks } = require("../services/configService");
 
 // Converte "YYYY-MM-DD" para Date no horário local (evita deslocamento de fuso)
 function parseLocalDate(str) {
