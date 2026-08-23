@@ -307,7 +307,7 @@
             border-radius: 9999px;
             display: flex;
             align-items: center;
-            height: 42px;
+            min-height: 42px;
         }
     </style>
 </head>
@@ -320,12 +320,12 @@
         <div class="blob" style="width:560px;height:560px;background:var(--blob2);bottom:-180px;left:-120px;"></div>
         <div class="blob" style="width:480px;height:480px;background:var(--blob1);bottom:-140px;right:-140px;"></div>
 
-        <div class="glass-card rounded-[60px] w-full max-w-[605px] mx-4 my-8 px-12 py-10 text-center relative">
-            <div class="w-[184px] h-[161px] mx-auto mb-2 relative">
+        <div class="glass-card rounded-[40px] sm:rounded-[60px] w-full max-w-[605px] mx-4 my-8 px-6 py-8 sm:px-12 sm:py-10 text-center relative">
+            <div class="w-[150px] h-[130px] sm:w-[184px] sm:h-[161px] mx-auto mb-2 relative">
                 <div class="absolute inset-0 bg-white/50 rounded-full blur-sm"></div>
                 <img src="assets/logo.png" alt="Agendachrome" class="relative w-full h-full object-contain">
             </div>
-            <h1 class="text-4xl font-extrabold tracking-tight">Agendachrome</h1>
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Agendachrome</h1>
             <p class="text-[#073D53]/70 mt-2 mb-8">
                 Seja bem-vindo ao sistema de agendamento de<br>ChromeBooks!
             </p>
@@ -362,18 +362,18 @@
             <!-- Topo: chip do usuário (direita) + título -->
             <div class="relative">
                 <div id="userBadgeWrap" class="absolute right-0 top-0"></div>
-                <h1 class="text-center text-[34px] font-extrabold tracking-tight text-[#073D53] pt-2 select-none">
+                <h1 class="text-center text-[26px] sm:text-[34px] font-extrabold tracking-tight text-[#073D53] pt-2 select-none">
                     Agendachrome
                 </h1>
             </div>
 
             <!-- Barra de seleção de data (header pill) -->
-            <div class="mt-7 bg-[#86CDEB]/60 rounded-full h-[60px] px-8 flex items-center justify-between gap-4 flex-wrap shadow-lg shadow-[#48859F]/15">
-                <div class="flex items-center gap-5">
-                    <span class="font-semibold text-[15px] text-[#073D53] whitespace-nowrap">Visualizar disponibilidade para:</span>
+            <div class="mt-5 sm:mt-7 bg-[#86CDEB]/60 rounded-[30px] sm:rounded-full min-h-[60px] px-4 sm:px-8 py-3 flex items-center justify-center sm:justify-between gap-3 flex-wrap shadow-lg shadow-[#48859F]/15">
+                <div class="flex items-center gap-3 flex-wrap justify-center">
+                    <span class="font-semibold text-[13px] sm:text-[15px] text-[#073D53] whitespace-nowrap">Visualizar disponibilidade para:</span>
                     <div class="relative">
                         <input type="date" id="dataVisualizacao"
-                            class="bg-[#C4E8F8]/20 rounded-full h-[45px] pl-7 pr-12 text-[15px] font-semibold text-[#073D53] focus:outline-none focus:bg-white/60 transition-all">
+                            class="bg-[#C4E8F8]/20 rounded-full h-[45px] pl-4 sm:pl-7 pr-12 text-[14px] sm:text-[15px] font-semibold text-[#073D53] focus:outline-none focus:bg-white/60 transition-all">
                         <img src="assets/icon-calendar.png" alt="Abrir calendário" title="Abrir calendário"
                             onclick="abrirCalendario(event, 'dataVisualizacao')"
                             class="absolute right-3.5 top-1/2 -translate-y-1/2 w-[26px] h-[26px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity">
@@ -385,11 +385,11 @@
             </div>
 
             <!-- Filtro por local (visual — funcionalidade em desenvolvimento) -->
-            <div class="mt-5 bg-[#86CDEB] rounded-full w-full max-w-[600px] h-[42px] flex items-center">
-                <span class="pl-8 font-semibold text-[14px] text-[#073D53] whitespace-nowrap">Visualizar disponibilidade para:</span>
-                <div class="ml-auto mr-2 bg-white/20 rounded-full h-[28px] px-5 flex items-center">
+            <div class="mt-4 sm:mt-5 bg-[#86CDEB] rounded-[30px] sm:rounded-full w-full max-w-[600px] min-h-[42px] py-1.5 sm:py-0 flex items-center flex-wrap">
+                <span class="pl-4 sm:pl-8 font-semibold text-[12px] sm:text-[14px] text-[#073D53] whitespace-nowrap">Visualizar disponibilidade para:</span>
+                <div class="ml-auto mr-2 bg-white/20 rounded-full h-[28px] px-4 sm:px-5 flex items-center mt-1 sm:mt-0">
                     <select id="selectLocal" disabled title="Funcionalidade em desenvolvimento"
-                        class="bg-transparent text-[14px] font-semibold text-[#073D53] outline-none">
+                        class="bg-transparent text-[13px] sm:text-[14px] font-semibold text-[#073D53] outline-none">
                         <option selected>Todos os locais</option>
                     </select>
                 </div>
@@ -397,25 +397,27 @@
 
             <!-- Grade: tabela de disponibilidade + formulário de agendamento -->
             <div class="mt-6 grid grid-cols-1 lg:grid-cols-[1.56fr_1fr] gap-6 items-start">
-                <div class="card-figma rounded-[30px] p-7 sm:p-8">
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="text-left">
-                                <th class="pb-4 pr-4 font-bold text-[14px] text-[#073D53]">Horário</th>
-                                <th class="pb-4 px-4 font-bold text-[14px] text-[#073D53]">Disponibilidade</th>
-                                <th class="pb-4 pl-4 font-bold text-[14px] text-[#073D53]">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaHorarios"></tbody>
-                    </table>
+                <div class="card-figma rounded-[24px] sm:rounded-[30px] p-4 sm:p-8">
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="text-left">
+                                    <th class="pb-4 pr-2 sm:pr-4 font-bold text-[13px] sm:text-[14px] text-[#073D53]">Horário</th>
+                                    <th class="pb-4 px-2 sm:px-4 font-bold text-[13px] sm:text-[14px] text-[#073D53]">Disponibilidade</th>
+                                    <th class="pb-4 pl-2 sm:pl-4 font-bold text-[13px] sm:text-[14px] text-[#073D53]">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelaHorarios"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div class="space-y-6">
-                    <div class="card-figma rounded-[30px] p-7 sm:p-8">
+                    <div class="card-figma rounded-[24px] sm:rounded-[30px] p-4 sm:p-8">
                         <div id="formContainer"></div>
                     </div>
                     <button onclick="mostrarScreen('lista')"
-                        class="w-full bg-[#86CDEB] rounded-[30px] h-[84px] flex items-center justify-center gap-2 font-bold text-[15px] text-[#073D53] hover:bg-[#6FB9D8] transition-all shadow-lg shadow-[#48859F]/15">
+                        class="w-full bg-[#86CDEB] rounded-[24px] sm:rounded-[30px] h-[64px] sm:h-[84px] flex items-center justify-center gap-2 font-bold text-[15px] text-[#073D53] hover:bg-[#6FB9D8] transition-all shadow-lg shadow-[#48859F]/15">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -435,7 +437,7 @@
             </button>
 
             <div class="mt-8 flex items-center justify-between flex-wrap gap-4">
-                <h2 class="text-3xl font-extrabold tracking-tight">Lista de Agendamentos</h2>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Lista de Agendamentos</h2>
                 <div id="btnExportarWrap"></div>
             </div>
             <p class="mt-2 text-[#073D53]/70">Total: <span id="totalAgendamentos" class="font-bold">0</span> agendamento(s) encontrado(s)</p>
@@ -553,7 +555,7 @@
     </div>
 
     <!-- Sistema de Notificações -->
-    <div id="notificationContainer" class="fixed bottom-4 right-4 z-[9999] space-y-2"></div>
+    <div id="notificationContainer" class="fixed bottom-4 right-4 left-4 sm:left-auto z-[9999] space-y-2"></div>
 
     <script>
         // ==================== CONFIGURAÇÕES ====================
@@ -708,7 +710,7 @@
                     <button id="adminMenuBtn" onclick="toggleAdminMenu()"
                         class="flex items-center gap-2.5 bg-white/60 border border-[#48859F] rounded-full pl-1.5 pr-4 py-1.5 shadow hover:shadow-lg transition-all">
                         <img src="assets/avatar.png" alt="" class="w-9 h-9 rounded-full object-cover bg-[#C4E8F8]">
-                        <span class="font-semibold text-sm">${roleLabel}</span>
+                        <span class="font-semibold text-sm hidden sm:inline">${roleLabel}</span>
                         <svg class="w-4 h-4 text-[#48859F] transition-transform duration-200" id="adminArrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
@@ -787,7 +789,7 @@
                 info: 'text-blue-800'
             };
 
-            notification.className = `notification ${colors[type]} border-l-4 rounded-2xl shadow-lg p-4 min-w-[300px] transform transition-all duration-300`;
+            notification.className = `notification ${colors[type]} border-l-4 rounded-2xl shadow-lg p-4 min-w-0 w-[calc(100vw-2rem)] max-w-[380px] transform transition-all duration-300`;
             notification.innerHTML = `
                 <div class="flex items-start gap-3">
                     <div class="text-2xl">${icons[type]}</div>
@@ -1010,23 +1012,23 @@
                 const [nomePart, horaPart] = labelHorario(horario.nome).split(" (");
                 return `
                     <tr class="align-middle">
-                        <td class="py-[14px] pr-4">
-                            <div class="cell-pill px-6 w-[236px] whitespace-nowrap">
-                                <span class="font-bold text-[14px]">${escapeHtml(nomePart)}</span>
-                                <span class="text-[13px] text-[#073D53]/50">&nbsp;(${escapeHtml(horaPart)}</span>
+                        <td class="py-[14px] pr-2 sm:pr-4">
+                            <div class="cell-pill px-3 sm:px-6 w-auto min-w-0 whitespace-normal sm:whitespace-nowrap">
+                                <span class="font-bold text-[13px] sm:text-[14px] leading-tight">${escapeHtml(nomePart)}</span>
+                                <span class="text-[12px] sm:text-[13px] text-[#073D53]/50 leading-tight">&nbsp;(${escapeHtml(horaPart)}</span>
                             </div>
                         </td>
-                        <td class="py-[14px] px-4">
-                            <div class="cell-pill px-5 gap-3 w-[276px]">
-                                <span class="text-[22px] font-extrabold leading-none">${disponivel}</span>
-                                <span class="text-[13px] text-[#073D53]/50 leading-none">/ ${LIMITE_TOTAL}</span>
-                                <div class="flex-1 h-[14px] rounded-full border ${disponivel <= 0 ? 'border-[#48859F]/50' : 'border-transparent'} overflow-hidden">
+                        <td class="py-[14px] px-2 sm:px-4">
+                            <div class="cell-pill px-3 sm:px-5 gap-2 sm:gap-3 w-auto min-w-0">
+                                <span class="text-[20px] sm:text-[22px] font-extrabold leading-none">${disponivel}</span>
+                                <span class="text-[12px] sm:text-[13px] text-[#073D53]/50 leading-none">/ ${LIMITE_TOTAL}</span>
+                                <div class="flex-1 h-[14px] rounded-full border ${disponivel <= 0 ? 'border-[#48859F]/50' : 'border-transparent'} overflow-hidden hidden sm:block">
                                     <div class="h-full rounded-full transition-all duration-400" style="width:${disponivel <= 0 ? 0 : porcentagem}%;background:${statusBar}"></div>
                                 </div>
                             </div>
                         </td>
-                        <td class="py-[14px] pl-4">
-                            <div class="rounded-full h-[42px] w-[166px] flex items-center justify-center border border-[#48859F] font-bold text-[14px] text-[#073D53]" style="background:${statusBg}">
+                        <td class="py-[14px] pl-2 sm:pl-4">
+                            <div class="rounded-full h-[36px] sm:h-[42px] w-auto min-w-[80px] sm:min-w-[166px] px-2 sm:px-6 flex items-center justify-center border border-[#48859F] font-bold text-[12px] sm:text-[14px] text-[#073D53] whitespace-nowrap" style="background:${statusBg}">
                                 ${statusText}
                             </div>
                         </td>
@@ -1360,7 +1362,7 @@
                         <div class="error-message" id="error-professor"></div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-[30px] mt-[14px]">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-[16px] sm:gap-[30px] mt-[14px]">
                         <div>
                             <label class="form-label">Quantidade *</label>
                             <input type="number" id="quantidade" name="quantidade" required min="1" max="${LIMITE_TOTAL}" class="form-field" placeholder="Ex: 10">
@@ -1378,7 +1380,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-[30px] mt-[14px]">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-[16px] sm:gap-[30px] mt-[14px]">
                         <div>
                             <label class="form-label">Turma *</label>
                             <select id="turma" name="turma" required class="form-field">
@@ -1397,7 +1399,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-[30px] mt-[14px]">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-[16px] sm:gap-[30px] mt-[14px]">
                         <div>
                             <label class="form-label">Local *</label>
                             <input type="text" id="local" disabled value="" placeholder="Em desenvolvimento"
@@ -1419,7 +1421,7 @@
                         <textarea id="observacoes" name="observacoes" rows="2" class="form-field" placeholder="Informações adicionais..."></textarea>
                     </div>
 
-                    <div class="flex items-center justify-center gap-3 mt-[28px]">
+                    <div class="flex items-center justify-center gap-3 mt-[28px] flex-wrap">
                         <button type="submit" class="btn-novo">Novo Agendamento</button>
                         <button type="button" onclick="limparFormulario()" class="btn-limpar">Limpar</button>
                     </div>

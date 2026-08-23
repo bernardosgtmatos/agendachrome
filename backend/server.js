@@ -15,8 +15,8 @@ const PORT = process.env.PORT || 3000;
 
 // ==================== ARQUIVOS ESTÁTICOS (FRONTEND) ====================
 
-// Serve os arquivos estáticos da pasta raiz do projeto (index.html)
-app.use(express.static(path.join(__dirname, "..")));
+// Serve os arquivos estáticos do frontend (pasta public/ — mesmo layout do Vercel)
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 // ==================== INICIALIZAÇÃO ====================
 
