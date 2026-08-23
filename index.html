@@ -557,7 +557,7 @@
 
     <script>
         // ==================== CONFIGURAÇÕES ====================
-        const API_BASE = window.location.origin + "/api";
+        const API_BASE = window.location.origin + "/api"; // guarda a url pra usar p requisições
         const HORARIOS = [
             { nome: "1º Horário (07:00 - 07:50)", inicio: "07:00", fim: "07:50" },
             { nome: "2º Horário (07:50 - 08:40)", inicio: "07:50", fim: "08:40" },
@@ -571,12 +571,12 @@
         let LIMITE_TOTAL = 36;
         const TOKEN_KEY = 'chromebook_token';
 
-        // Ajusta o rótulo exibido ("1º Horário" -> "1º Aula", como no Figma)
+        // traduz 1º Horário" -> 1º Aula| ocorrencia : tabela dispo, lista agen, form agen, msg de erro de dispo 
         function labelHorario(nome) {
             return nome.replace("Horário", "Aula");
         }
 
-        // Data local em YYYY-MM-DD (evita deslocamento de fuso do toISOString)
+        // Data local em YYYY-MM-DD (evita deslocamento de fuso do toISOString) 
         function dataLocal(d = new Date()) {
             const y = d.getFullYear();
             const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -586,13 +586,13 @@
 
         // Verifica se o horário final do agendamento já passou
         function isAgendamentoConcluido(ag) {
-            if (!ag.data) return false;
-            const dataAgStr = ag.data.split("T")[0];
+            if (!ag.data) return false; // agend sem data return false (se NAO ag.data retorna falso)
+            const dataAgStr = ag.data.split("T")[0]; // retorna dd/mm/aa | corta oq ta depois do T (2026-08-23 T 14:30:00.000Z)
             const agora = new Date();
             const hojeStr = dataLocal(agora);
 
-            if (dataAgStr < hojeStr) return true;
-            if (dataAgStr > hojeStr) return false;
+            if (dataAgStr < hojeStr) return true; 
+            if (dataAgStr > hojeStr) return false; 
 
             const horario = HORARIOS.find(h => h.nome === ag.horarioDevolucao);
             if (!horario) return false;
@@ -649,10 +649,10 @@
         async function carregarConfig() {
             try {
                 const config = await api.get("/config");
-                if (config && config.limiteChromebooks) {
-                    LIMITE_TOTAL = config.limiteChromebooks;
+                if (config && config.limiteChromebooks) { // se config da api foi carregada e config.limit existe  cai no if
+                    LIMITE_TOTAL = config.limiteChromebooks; // set limite_total para o de config ou padrao 36
                 }
-            } catch (e) {
+            } catch (e) { // se o try falhar cai no catch chamado "e" e exibe o console.warn
                 console.warn("Não foi possível carregar config, usando padrão:", e.message);
             }
         }
