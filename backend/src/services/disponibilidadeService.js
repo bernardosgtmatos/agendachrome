@@ -1,9 +1,8 @@
 // Serviço de cálculo de disponibilidade de chromebooks por data/horário
 
-const { PrismaClient } = require("@prisma/client");
-const { HORARIOS, LIMITE_TOTAL } = require("../config/constants");
-
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
+const { HORARIOS } = require("../config/constants");
+const { getLimiteChromebooks } = require("./configService");
 
 // Converte "YYYY-MM-DD" para Date no horário local (evita deslocamento de fuso)
 function parseLocalDate(str) {
@@ -27,10 +26,12 @@ async function calcularDisponibilidade(data) {
     }
   });
 
+  const limite = await getLimiteChromebooks();
+
   // Calcula a disponibilidade por horário
   const disponibilidade = {};
   HORARIOS.forEach(horario => {
-    disponibilidade[horario.nome] = LIMITE_TOTAL;
+    disponibilidade[horario.nome] = limite;
   });
 
   agendamentos.forEach(ag => {

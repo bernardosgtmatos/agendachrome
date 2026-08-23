@@ -1,10 +1,6 @@
 // Controlador de agendamentos: CRUD com regras de negócio
 
-const { PrismaClient } = require("@prisma/client");
-const { verificarDisponibilidade } = require("../services/disponibilidadeService");
-const { ROLES } = require("../config/constants");
-
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
 
 // Converte "YYYY-MM-DD" para Date no horário local (evita deslocamento de fuso)
 function parseLocalDate(str) {
@@ -111,8 +107,9 @@ async function criar(req, res, next) {
       });
     }
 
-    if (quantidade < 1 || quantidade > 36) {
-      return res.status(400).json({ erro: "A quantidade deve estar entre 1 e 36." });
+    const limite = await getLimiteChromebooks();
+    if (quantidade < 1 || quantidade > limite) {
+      return res.status(400).json({ erro: `A quantidade deve estar entre 1 e ${limite}.` });
     }
 
     // Valida data não passada

@@ -45,7 +45,15 @@ async function main() {
   });
   console.log(`✅ Professor criado: ${professor.email} (senha: prof123)`);
 
-  // 3. Cria as turmas padrão
+  // 3. Cria configuração padrão do sistema
+  await prisma.configuracao.upsert({
+    where: { id: 1 },
+    update: { limiteChromebooks: 36 },
+    create: { id: 1, limiteChromebooks: 36 }
+  });
+  console.log("✅ Configuração padrão criada (limite: 36 chromebooks).");
+
+  // 4. Cria as turmas padrão
   let turmasCriadas = 0;
   for (const nome of TURMAS_DEFAULT) {
     try {

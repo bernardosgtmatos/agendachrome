@@ -1,7 +1,6 @@
 // Controlador de turmas: CRUD completo
 
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
 
 // GET /api/turmas — Lista todas as turmas ordenadas por nome
 async function listar(req, res, next) {

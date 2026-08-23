@@ -3,11 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Agendamento - Chromebooks Escolares</title>
+    <title>Agendachrome - Sistema de Agendamento de Chromebooks</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .transition-all {
-            transition: all 0.3s ease;
+        :root {
+            --fundo: #E3EFFB;
+            --blob1: #8FC2D9;
+            --blob2: #C2E4F3;
+            --cartao: #C4E8F8;
+            --borda: #48859F;
+            --primario: #86CDEB;
+            --primario-hover: #6FB9D8;
+            --texto: #073D53;
+            --verde: #31BA16;
+            --amarelo: #EFEF00;
+            --vermelho: #FF0105;
+            --vermelho-escuro: #CA1515;
+            --link: #0D5EBA;
+        }
+        html, body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--fundo);
+            color: var(--texto);
+        }
+        /* Manchas orgânicas de fundo (como no Figma) */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.55;
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* Cartões de vidro */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(72, 133, 159, 0.35);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(7, 61, 83, 0.12);
+        }
+        /* Inputs em pílula */
+        .pill-input {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1.5px solid var(--borda);
+            border-radius: 9999px;
+            padding: 0.6rem 1.25rem;
+            width: 100%;
+            font-size: 0.9rem;
+            color: var(--texto);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .pill-input:focus {
+            border-color: var(--primario-hover);
+            box-shadow: 0 0 0 3px rgba(134, 205, 235, 0.35);
+            background: #fff;
+        }
+        .pill-input:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.35);
+        }
+        select.pill-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%2348859F' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem;
+        }
+        textarea.pill-input {
+            border-radius: 1.5rem;
+            resize: vertical;
+        }
+        .btn-primary {
+            background: var(--primario);
+            border-radius: 9999px;
+            padding: 0.7rem 1.75rem;
+            font-weight: 700;
+            color: var(--texto);
+            border: 1px solid rgba(72, 133, 159, 0.25);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(72, 133, 159, 0.25);
+        }
+        .btn-primary:hover {
+            background: var(--primario-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(72, 133, 159, 0.35);
+        }
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1.5px solid var(--borda);
+            border-radius: 9999px;
+            padding: 0.7rem 1.75rem;
+            font-weight: 600;
+            color: var(--texto);
+            transition: all 0.2s ease;
+        }
+        .btn-ghost:hover {
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(7, 61, 83, 0.12);
         }
         .input-error {
             border-color: #ef4444 !important;
@@ -18,26 +117,11 @@
             font-size: 0.75rem;
             margin-top: 0.25rem;
         }
-        .turma-option {
-            transition: all 0.2s ease;
-        }
-        .turma-option:hover {
-            background-color: #f3f4f6;
-            transform: translateX(4px);
+        .agendamento-row:hover {
+            background: rgba(196, 232, 248, 0.25);
         }
         .modal {
-            transition: all 0.3s ease;
-        }
-        @keyframes highlight {
-            0% { background-color: #dbeafe; }
-            100% { background-color: transparent; }
-        }
-        .agendamento-row {
-            transition: all 0.2s ease;
-        }
-        .agendamento-row:hover {
-            background-color: #f9fafb;
-            transform: translateX(2px);
+            transition: all 0.25s ease;
         }
         .notification {
             animation: slideInRight 0.3s ease-out;
@@ -47,9 +131,9 @@
             position: fixed;
             z-index: 9999;
             background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 1px solid var(--borda);
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(7, 61, 83, 0.18);
             padding: 1rem 1.25rem;
             max-width: 360px;
             min-width: 200px;
@@ -57,7 +141,7 @@
             white-space: pre-wrap;
             font-size: 0.875rem;
             line-height: 1.5;
-            color: #374151;
+            color: var(--texto);
             animation: fadeIn 0.15s ease-out;
         }
         .obs-popup::before {
@@ -68,8 +152,8 @@
             width: 12px;
             height: 12px;
             background: white;
-            border-left: 1px solid #e5e7eb;
-            border-top: 1px solid #e5e7eb;
+            border-left: 1px solid var(--borda);
+            border-top: 1px solid var(--borda);
             transform: rotate(45deg);
         }
         @keyframes fadeIn {
@@ -83,16 +167,9 @@
             background: transparent;
         }
         @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-        /* Estilos da tela de login */
         #telaLogin {
             transition: opacity 0.4s ease;
         }
@@ -100,216 +177,383 @@
             display: none;
         }
         .spinner {
-            border: 3px solid #e5e7eb;
-            border-top: 3px solid #3b82f6;
+            border: 3px solid rgba(255,255,255,0.4);
+            border-top: 3px solid var(--texto);
             border-radius: 50%;
             width: 20px;
             height: 20px;
             animation: spin 0.8s linear infinite;
             display: inline-block;
+            vertical-align: -4px;
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        .loading-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(255,255,255,0.7);
+        .dropdown-menu {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(72, 133, 159, 0.35);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-radius: 1.25rem;
+            box-shadow: 0 14px 34px rgba(7, 61, 83, 0.2);
+        }
+        .drop-item:hover {
+            background: rgba(134, 205, 235, 0.25);
+        }
+        /* Barra de disponibilidade */
+        .bar-track {
+            background: rgba(72, 133, 159, 0.15);
+            border-radius: 9999px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.4s ease;
+        }
+        /* Scrollbar suave */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: rgba(72, 133, 159, 0.4); border-radius: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        /* Oculta o indicador nativo do campo de data — usamos o ícone (asset) do Figma */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
+
+        /* ============ ESTILOS FIÉIS AO FIGMA (tela de agendamento) ============ */
+        /* Cartão sem borda visível, apenas leve brilho + sombra */
+        .card-figma {
+            background: rgba(255, 255, 255, 0.22);
+            box-shadow: 0 12px 34px rgba(7, 61, 83, 0.12);
+        }
+        /* Campos finos do formulário (28px, rx 10, como no Figma) */
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(7, 61, 83, 0.6);
+            margin-bottom: 5px;
+        }
+        .form-field {
+            width: 100%;
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            height: 28px;
+            padding: 0 14px;
+            font-size: 13px;
+            color: var(--texto);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .form-field:focus {
+            border-color: var(--texto);
+            box-shadow: 0 0 0 2px rgba(134, 205, 235, 0.4);
+        }
+        .form-field:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            background: #f3f7fb;
+        }
+        textarea.form-field {
+            height: 67px;
+            padding: 8px 14px;
+            resize: vertical;
+        }
+        select.form-field {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%2348859F' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+            padding-right: 28px;
+        }
+        /* Botões do painel Agendar */
+        .btn-novo {
+            background: var(--primario);
+            border-radius: 9999px;
+            height: 40px;
+            padding: 0 32px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--texto);
+            transition: all 0.2s ease;
+        }
+        .btn-novo:hover {
+            background: var(--primario-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(72, 133, 159, 0.35);
+        }
+        .btn-limpar {
+            background: #C2E4F3;
+            border-radius: 9999px;
+            height: 34px;
+            padding: 0 22px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--texto);
+            transition: all 0.2s ease;
+        }
+        .btn-limpar:hover {
+            background: #AED9EC;
+        }
+        /* Pílulas da tabela de disponibilidade */
+        .cell-pill {
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid var(--borda);
+            border-radius: 9999px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            z-index: 10;
+            height: 42px;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <!-- Tela de Login -->
-    <div id="telaLogin" class="fixed inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8">
-            <div class="text-center mb-8">
-                <div class="text-5xl mb-4">📱</div>
-                <h1 class="text-2xl font-bold text-gray-800">Sistema de Chromebooks</h1>
-                <p class="text-gray-500 text-sm mt-1">Faça login para continuar</p>
+<body class="min-h-screen">
+    <!-- ==================== TELA DE LOGIN (Desktop 1) ==================== -->
+    <div id="telaLogin" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
+        <div class="absolute inset-0 bg-[#E3EFFB]"></div>
+        <div class="blob" style="width:520px;height:520px;background:var(--blob1);top:-140px;left:-160px;"></div>
+        <div class="blob" style="width:420px;height:420px;background:var(--blob2);top:-60px;right:-100px;"></div>
+        <div class="blob" style="width:560px;height:560px;background:var(--blob2);bottom:-180px;left:-120px;"></div>
+        <div class="blob" style="width:480px;height:480px;background:var(--blob1);bottom:-140px;right:-140px;"></div>
+
+        <div class="glass-card rounded-[60px] w-full max-w-[605px] mx-4 my-8 px-12 py-10 text-center relative">
+            <div class="w-[184px] h-[161px] mx-auto mb-2 relative">
+                <div class="absolute inset-0 bg-white/50 rounded-full blur-sm"></div>
+                <img src="assets/logo.png" alt="Agendachrome" class="relative w-full h-full object-contain">
             </div>
-            <form id="formLogin" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                    <input type="email" id="loginEmail" required
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="seu@email.com">
+            <h1 class="text-4xl font-extrabold tracking-tight">Agendachrome</h1>
+            <p class="text-[#073D53]/70 mt-2 mb-8">
+                Seja bem-vindo ao sistema de agendamento de<br>ChromeBooks!
+            </p>
+            <form id="formLogin" class="space-y-5">
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Email</label>
+                    <input type="email" id="loginEmail" required class="pill-input" placeholder="seu@email.com">
                 </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Senha</label>
-                    <input type="password" id="loginSenha" required
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Sua senha">
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Senha</label>
+                    <input type="password" id="loginSenha" required class="pill-input" placeholder="Sua senha">
+                </div>
+                <div class="text-right">
+                    <span id="esqueceuSenha" onclick="mostrarAvisoEmBreve('Recuperação de senha')"
+                        class="text-sm font-semibold text-[#0D5EBA] hover:underline cursor-pointer">Esqueceu senha?</span>
                 </div>
                 <div id="loginErro" class="text-red-600 text-sm font-medium hidden"></div>
-                <button type="submit" id="btnLogin"
-                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-2.5 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all">
+                <button type="submit" id="btnLogin" class="btn-primary w-full py-3 text-lg">
                     Entrar
                 </button>
             </form>
-            <p class="text-center text-xs text-gray-400 mt-6">
-                Sistema de Agendamento de Chromebooks Escolares
-            </p>
         </div>
     </div>
 
-    <!-- App principal (inicialmente oculto) -->
-    <div id="appContainer" class="hidden">
-    <div class="container mx-auto px-4 py-8 max-w-7xl">
-        <!-- Cabeçalho -->
-        <div class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-gray-800 mb-2">📱 Sistema de Chromebooks</h1>
-            <p class="text-gray-600">Gerencie agendamentos de forma eficiente e colaborativa</p>
-            <div class="inline-block bg-white rounded-full px-4 py-1 mt-2 shadow-sm">
-                <span class="text-sm font-semibold text-gray-700">🎯 Limite: 36 unidades por período</span>
+    <!-- ==================== APP PRINCIPAL ==================== -->
+    <div id="appContainer" class="hidden relative min-h-screen overflow-x-hidden">
+        <div class="fixed inset-0 bg-[#E3EFFB] -z-10"></div>
+        <div class="blob" style="width:560px;height:560px;background:var(--blob1);top:-220px;left:-180px;"></div>
+        <div class="blob" style="width:460px;height:460px;background:var(--blob2);top:40%;right:-200px;"></div>
+        <div class="blob" style="width:620px;height:620px;background:var(--blob2);bottom:-260px;left:10%;"></div>
+
+        <!-- ============ SCREEN: AGENDAR (Desktop 2/3/4/5) ============ -->
+        <section id="screenAgendar" class="relative z-10 mx-auto max-w-[1400px] px-6 sm:px-8 pt-1 pb-12">
+            <!-- Topo: chip do usuário (direita) + título -->
+            <div class="relative">
+                <div id="userBadgeWrap" class="absolute right-0 top-0"></div>
+                <h1 class="text-center text-[34px] font-extrabold tracking-tight text-[#073D53] pt-2 select-none">
+                    Agendachrome
+                </h1>
             </div>
-        </div>
 
-        <!-- Indicador de Última Atualização -->
-        <div class="mb-4 text-right text-sm text-gray-500" id="ultimaAtualizacao">
-            Última atualização: agora
-        </div>
-
-        <!-- Seletor de Data para Visualização -->
-        <div class="mb-6 bg-white rounded-lg shadow-lg p-4">
-            <div class="flex items-center justify-between flex-wrap gap-4">
-                <div class="flex items-center space-x-4">
-                    <label class="font-semibold text-gray-700">📅 Visualizar disponibilidade para:</label>
-                    <input type="date" id="dataVisualizacao" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <!-- Barra de seleção de data (header pill) -->
+            <div class="mt-7 bg-[#86CDEB]/60 rounded-full h-[60px] px-8 flex items-center justify-between gap-4 flex-wrap shadow-lg shadow-[#48859F]/15">
+                <div class="flex items-center gap-5">
+                    <span class="font-semibold text-[15px] text-[#073D53] whitespace-nowrap">Visualizar disponibilidade para:</span>
+                    <div class="relative">
+                        <input type="date" id="dataVisualizacao"
+                            class="bg-[#C4E8F8]/20 rounded-full h-[45px] pl-7 pr-12 text-[15px] font-semibold text-[#073D53] focus:outline-none focus:bg-white/60 transition-all">
+                        <img src="assets/icon-calendar.png" alt="Abrir calendário" title="Abrir calendário"
+                            onclick="abrirCalendario(event, 'dataVisualizacao')"
+                            class="absolute right-3.5 top-1/2 -translate-y-1/2 w-[26px] h-[26px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity">
+                    </div>
                 </div>
-                <div class="text-sm text-gray-600">
+                <p class="text-[13px] text-[#073D53]/60 hidden xl:block">
                     💡 Dica: Selecione uma data para ver a disponibilidade específica daquele dia
+                </p>
+            </div>
+
+            <!-- Filtro por local (visual — funcionalidade em desenvolvimento) -->
+            <div class="mt-5 bg-[#86CDEB] rounded-full w-full max-w-[600px] h-[42px] flex items-center">
+                <span class="pl-8 font-semibold text-[14px] text-[#073D53] whitespace-nowrap">Visualizar disponibilidade para:</span>
+                <div class="ml-auto mr-2 bg-white/20 rounded-full h-[28px] px-5 flex items-center">
+                    <select id="selectLocal" disabled title="Funcionalidade em desenvolvimento"
+                        class="bg-transparent text-[14px] font-semibold text-[#073D53] outline-none">
+                        <option selected>Todos os locais</option>
+                    </select>
                 </div>
             </div>
-        </div>
 
-        <!-- Tabela de Disponibilidade por DATA -->
-        <div class="mb-8 overflow-x-auto bg-white rounded-lg shadow-lg">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gradient-to-r from-blue-600 to-indigo-600">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Horário</th>
-                        <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Disponibilidade</th>
-                        <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelaHorarios" class="bg-white divide-y divide-gray-200"></tbody>
-            </table>
-        </div>
+            <!-- Grade: tabela de disponibilidade + formulário de agendamento -->
+            <div class="mt-6 grid grid-cols-1 lg:grid-cols-[1.56fr_1fr] gap-6 items-start">
+                <div class="card-figma rounded-[30px] p-7 sm:p-8">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="text-left">
+                                <th class="pb-4 pr-4 font-bold text-[14px] text-[#073D53]">Horário</th>
+                                <th class="pb-4 px-4 font-bold text-[14px] text-[#073D53]">Disponibilidade</th>
+                                <th class="pb-4 pl-4 font-bold text-[14px] text-[#073D53]">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaHorarios"></tbody>
+                    </table>
+                </div>
 
-        <!-- Tabs de Navegação -->
-        <div class="mb-6 border-b border-gray-200">
-            <nav class="flex space-x-4">
-                <button onclick="showTab('agendar')" class="tab-btn py-2 px-4 font-semibold text-gray-600 hover:text-blue-600 border-b-2 border-transparent transition-all" data-tab="agendar">
-                    ➕ Novo Agendamento
-                </button>
-                <button onclick="showTab('listar')" class="tab-btn py-2 px-4 font-semibold text-gray-600 hover:text-blue-600 border-b-2 border-transparent transition-all" data-tab="listar">
-                    📋 Lista de Agendamentos
-                </button>
-                <button onclick="showTab('turmas')" class="tab-btn py-2 px-4 font-semibold text-gray-600 hover:text-blue-600 border-b-2 border-transparent transition-all" data-tab="turmas">
-                    🏫 Gerenciar Turmas
-                </button>
-                <button id="tabBtnUsuarios" onclick="showTab('usuarios')" class="tab-btn py-2 px-4 font-semibold text-gray-600 hover:text-blue-600 border-b-2 border-transparent transition-all hidden" data-tab="usuarios">
-                    👥 Gerenciar Usuários
-                </button>
-            </nav>
-        </div>
+                <div class="space-y-6">
+                    <div class="card-figma rounded-[30px] p-7 sm:p-8">
+                        <div id="formContainer"></div>
+                    </div>
+                    <button onclick="mostrarScreen('lista')"
+                        class="w-full bg-[#86CDEB] rounded-[30px] h-[84px] flex items-center justify-center gap-2 font-bold text-[15px] text-[#073D53] hover:bg-[#6FB9D8] transition-all shadow-lg shadow-[#48859F]/15">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        Ver Lista de agendamentos
+                    </button>
+                </div>
+            </div>
+        </section>
 
-        <!-- Conteúdo das Tabs -->
-        <div id="tabAgendar" class="tab-content"></div>
-        <div id="tabListar" class="tab-content hidden"></div>
-        <div id="tabTurmas" class="tab-content hidden"></div>
-        <div id="tabUsuarios" class="tab-content hidden"></div>
+        <!-- ============ SCREEN: LISTA DE AGENDAMENTOS (Desktop 7) ============ -->
+        <section id="screenLista" class="hidden relative z-10 mx-auto max-w-[1200px] px-6 py-5 sm:px-8">
+            <button onclick="mostrarScreen('agendar')" class="btn-ghost flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Voltar
+            </button>
+
+            <div class="mt-8 flex items-center justify-between flex-wrap gap-4">
+                <h2 class="text-3xl font-extrabold tracking-tight">Lista de Agendamentos</h2>
+                <div id="btnExportarWrap"></div>
+            </div>
+            <p class="mt-2 text-[#073D53]/70">Total: <span id="totalAgendamentos" class="font-bold">0</span> agendamento(s) encontrado(s)</p>
+
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Filtrar por Data</label>
+                    <select id="filtroData" onchange="window.onFiltroDataChange()" class="pill-input text-sm">
+                        <option value="">Todas as datas</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Filtrar por Professor</label>
+                    <input type="text" id="filtroProfessor" onkeyup="window.onFiltroProfessorChange()"
+                        class="pill-input text-sm" placeholder="Digite o nome do professor...">
+                </div>
+                <div>
+                    <button onclick="window.limparFiltros()" class="btn-ghost w-full text-sm">Limpar Filtros</button>
+                </div>
+            </div>
+
+            <div id="tabelaAgendamentosContainer" class="mt-8 space-y-8"></div>
+        </section>
+
+        <!-- ============ SCREEN: GERENCIAR PLATAFORMA (Desktop 6) ============ -->
+        <section id="screenPlataforma" class="hidden relative z-10 mx-auto max-w-[1400px] px-6 py-5 sm:px-8">
+            <button onclick="mostrarScreen('agendar')" class="btn-ghost flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Voltar
+            </button>
+
+            <div class="mt-8 grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 items-start">
+                <div id="painelUsuarios" class="glass-card rounded-[30px] p-6 sm:p-8"></div>
+                <div id="painelTurmas" class="glass-card rounded-[30px] p-6 sm:p-8 space-y-8"></div>
+            </div>
+        </section>
     </div>
 
-    <!-- Modal para Adicionar/Editar Turma -->
-    <div id="turmaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 rounded-t-lg">
-                <h3 id="modalTitle" class="text-xl font-bold text-white">Adicionar Nova Turma</h3>
-            </div>
-            <div class="p-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Nome da Turma</label>
-                <input type="text" id="turmaNome" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Ex: 5° Ano A">
-                <div id="modalError" class="error-message mt-2"></div>
-            </div>
-            <div class="flex gap-3 p-6 pt-0">
-                <button onclick="salvarTurma()" class="flex-1 bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-all">
-                    Salvar
-                </button>
-                <button onclick="fecharModal()" class="flex-1 bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-300 transition-all">
-                    Cancelar
-                </button>
+    <!-- ==================== MODAL TURMA ==================== -->
+    <div id="turmaModal" class="modal fixed inset-0 bg-[#073D53]/40 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[30px] shadow-2xl max-w-md w-full p-8">
+            <h3 id="modalTitle" class="text-2xl font-bold mb-6">Adicionar Nova Turma</h3>
+            <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Nome da Turma</label>
+            <input type="text" id="turmaNome" class="pill-input" placeholder="Ex: 5° Ano A">
+            <div id="modalError" class="error-message mt-2"></div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="salvarTurma()" class="btn-primary flex-1">Salvar</button>
+                <button onclick="fecharModal()" class="btn-ghost flex-1">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal para Criar Usuário -->
-    <div id="usuarioModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 rounded-t-lg">
-                <h3 id="usuarioModalTitle" class="text-xl font-bold text-white">Cadastrar Novo Usuário</h3>
-            </div>
-            <div class="p-6 space-y-4">
+    <!-- ==================== MODAL USUÁRIO ==================== -->
+    <div id="usuarioModal" class="modal fixed inset-0 bg-[#073D53]/40 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[30px] shadow-2xl max-w-md w-full p-8">
+            <h3 id="usuarioModalTitle" class="text-2xl font-bold mb-6">Cadastrar Novo Usuário</h3>
+            <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nome completo *</label>
-                    <input type="text" id="usuarioNome" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Nome do professor">
+                    <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Nome completo *</label>
+                    <input type="text" id="usuarioNome" class="pill-input" placeholder="Nome do professor">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
-                    <input type="email" id="usuarioEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="email@escola.com">
+                    <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Email *</label>
+                    <input type="email" id="usuarioEmail" class="pill-input" placeholder="email@escola.com">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Senha *</label>
-                    <input type="password" id="usuarioSenha" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Mínimo 6 caracteres">
+                    <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Senha *</label>
+                    <input type="password" id="usuarioSenha" class="pill-input" placeholder="Mínimo 6 caracteres">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Perfil *</label>
-                    <select id="usuarioRole" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Perfil *</label>
+                    <select id="usuarioRole" class="pill-input">
                         <option value="professor">Professor</option>
                         <option value="coordenador">Coordenador</option>
                     </select>
                 </div>
                 <div id="usuarioModalError" class="error-message"></div>
             </div>
-            <div class="flex gap-3 p-6 pt-0">
-                <button onclick="salvarUsuario()" class="flex-1 bg-purple-600 text-white font-semibold py-2 rounded-lg hover:bg-purple-700 transition-all">
-                    Cadastrar
-                </button>
-                <button onclick="fecharUsuarioModal()" class="flex-1 bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-300 transition-all">
-                    Cancelar
-                </button>
+            <div class="flex gap-3 mt-6">
+                <button onclick="salvarUsuario()" class="btn-primary flex-1">Cadastrar</button>
+                <button onclick="fecharUsuarioModal()" class="btn-ghost flex-1">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Confirmação de Cancelamento -->
-    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 rounded-t-lg">
-                <h3 class="text-xl font-bold text-white">Confirmar Cancelamento</h3>
-            </div>
-            <div class="p-6">
-                <p class="text-gray-700 mb-4">Tem certeza que deseja cancelar este agendamento?</p>
-                <p class="text-sm text-gray-500" id="confirmMessage"></p>
-            </div>
-            <div class="flex gap-3 p-6 pt-0">
-                <button onclick="confirmarCancelamento()" class="flex-1 bg-red-600 text-white font-semibold py-2 rounded-lg hover:bg-red-700 transition-all">
-                    Sim, Cancelar
-                </button>
-                <button onclick="fecharConfirmModal()" class="flex-1 bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-300 transition-all">
-                    Não, Manter
-                </button>
+    <!-- ==================== MODAL CONFIRMAÇÃO CANCELAMENTO ==================== -->
+    <div id="confirmModal" class="modal fixed inset-0 bg-[#073D53]/40 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[30px] shadow-2xl max-w-md w-full p-8">
+            <h3 class="text-2xl font-bold mb-4">Confirmar Cancelamento</h3>
+            <p class="text-[#073D53]/80 mb-4">Tem certeza que deseja cancelar este agendamento?</p>
+            <p class="text-sm text-[#073D53]/60" id="confirmMessage"></p>
+            <div class="flex gap-3 mt-6">
+                <button onclick="confirmarCancelamento()" class="btn-primary flex-1 !bg-[#CA1515] !border-[#CA1515] hover:!bg-[#a51010]">Sim, Cancelar</button>
+                <button onclick="fecharConfirmModal()" class="btn-ghost flex-1">Não, Manter</button>
             </div>
         </div>
-    </div> <!-- Fim do container principal -->
-    </div> <!-- Fim do appContainer -->
+    </div>
+
+    <!-- ==================== MODAL GERENCIAR CAPACIDADE ==================== -->
+    <div id="capacidadeModal" class="modal fixed inset-0 bg-[#073D53]/40 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[30px] shadow-2xl max-w-md w-full p-8">
+            <h3 class="text-2xl font-bold mb-2">Gerenciar Capacidade</h3>
+            <p class="text-sm text-[#073D53]/60 mb-6">Defina o limite máximo de chromebooks disponíveis por horário.</p>
+            <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Limite de Chromebooks</label>
+            <input type="number" id="inputLimiteChromebooks" min="1" max="999" class="pill-input text-lg">
+            <p class="text-xs text-[#073D53]/50 mt-1">Mínimo: 1, Máximo: 999</p>
+            <div id="errorCapacidade" class="text-red-600 text-sm hidden mt-2"></div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="salvarConfiguracao()" class="btn-primary flex-1">Salvar</button>
+                <button onclick="fecharModalCapacidade()" class="btn-ghost flex-1">Cancelar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Sistema de Notificações -->
-    <div id="notificationContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+    <div id="notificationContainer" class="fixed bottom-4 right-4 z-[9999] space-y-2"></div>
 
     <script>
         // ==================== CONFIGURAÇÕES ====================
@@ -324,18 +568,50 @@
             { nome: "7º Horário (13:10 - 14:00)", inicio: "13:10", fim: "14:00" }
         ];
 
-        const LIMITE_TOTAL = 36;
+        let LIMITE_TOTAL = 36;
         const TOKEN_KEY = 'chromebook_token';
+
+        // Ajusta o rótulo exibido ("1º Horário" -> "1º Aula", como no Figma)
+        function labelHorario(nome) {
+            return nome.replace("Horário", "Aula");
+        }
+
+        // Data local em YYYY-MM-DD (evita deslocamento de fuso do toISOString)
+        function dataLocal(d = new Date()) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");
+            const dia = String(d.getDate()).padStart(2, "0");
+            return `${y}-${m}-${dia}`;
+        }
+
+        // Verifica se o horário final do agendamento já passou
+        function isAgendamentoConcluido(ag) {
+            if (!ag.data) return false;
+            const dataAgStr = ag.data.split("T")[0];
+            const agora = new Date();
+            const hojeStr = dataLocal(agora);
+
+            if (dataAgStr < hojeStr) return true;
+            if (dataAgStr > hojeStr) return false;
+
+            const horario = HORARIOS.find(h => h.nome === ag.horarioDevolucao);
+            if (!horario) return false;
+
+            const [horaFim, minFim] = horario.fim.split(":").map(Number);
+            const agoraHora = agora.getHours();
+            const agoraMin = agora.getMinutes();
+
+            return agoraHora > horaFim || (agoraHora === horaFim && agoraMin >= minFim);
+        }
 
         let agendamentoParaCancelar = null;
         let modoEdicao = false;
         let turmaEditando = null;
         let filtroData = '';
         let filtroProfessor = '';
+        let filtroStatus = '';
 
         // ==================== API CLIENT ====================
-
-        // Cliente HTTP genérico com token JWT
         const api = {
             _headers() {
                 const headers = { "Content-Type": "application/json" };
@@ -369,9 +645,27 @@
             }
         };
 
-        // ==================== AUTENTICAÇÃO ====================
+        // ==================== CONFIGURAÇÕES ====================
+        async function carregarConfig() {
+            try {
+                const config = await api.get("/config");
+                if (config && config.limiteChromebooks) {
+                    LIMITE_TOTAL = config.limiteChromebooks;
+                }
+            } catch (e) {
+                console.warn("Não foi possível carregar config, usando padrão:", e.message);
+            }
+        }
 
-        // Retorna dados do usuário logado do JWT decodificado
+        async function getConfigApi() {
+            return api.get("/config");
+        }
+
+        async function updateConfigApi(limiteChromebooks) {
+            return api.put("/config", { limiteChromebooks });
+        }
+
+        // ==================== AUTENTICAÇÃO ====================
         function getUsuario() {
             const token = localStorage.getItem(TOKEN_KEY);
             if (!token) return null;
@@ -392,14 +686,92 @@
             document.getElementById("telaLogin").classList.remove("hidden");
             document.getElementById("loginEmail").value = "";
             document.getElementById("loginSenha").value = "";
+            document.getElementById("notificationContainer").innerHTML = "";
         }
 
+        // Cria/atualiza o chip do usuário no canto superior direito (como no Figma)
+        function atualizarUserBadge() {
+            const usuario = getUsuario();
+            const wrap = document.getElementById('userBadgeWrap');
+            if (!wrap || !usuario) return;
+
+            const old = document.getElementById('userBadge');
+            if (old) old.remove();
+
+            const badge = document.createElement('div');
+            badge.id = 'userBadge';
+            const roleLabel = usuario.role === 'coordenador' ? 'Coordenador' : 'Professor';
+            const iniciais = (usuario.nome || "?").split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase();
+
+            badge.innerHTML = `
+                <div class="relative">
+                    <button id="adminMenuBtn" onclick="toggleAdminMenu()"
+                        class="flex items-center gap-2.5 bg-white/60 border border-[#48859F] rounded-full pl-1.5 pr-4 py-1.5 shadow hover:shadow-lg transition-all">
+                        <img src="assets/avatar.png" alt="" class="w-9 h-9 rounded-full object-cover bg-[#C4E8F8]">
+                        <span class="font-semibold text-sm">${roleLabel}</span>
+                        <svg class="w-4 h-4 text-[#48859F] transition-transform duration-200" id="adminArrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="adminDropdown" class="hidden absolute right-0 mt-3 w-64 dropdown-menu overflow-hidden z-50">
+                        <div class="px-5 py-4 border-b border-[#48859F]/20 flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-full bg-[#C4E8F8] flex items-center justify-center text-[#073D53] font-bold">${escapeHtml(iniciais)}</span>
+                            <div class="min-w-0">
+                                <p class="font-bold text-sm truncate">${escapeHtml(usuario.nome)}</p>
+                                <p class="text-xs text-[#073D53]/60 truncate">${escapeHtml(usuario.email)}</p>
+                            </div>
+                        </div>
+                        <div class="py-1.5">
+                            ${usuario.role === 'coordenador' ? `
+                            <button onclick="mostrarScreen('plataforma'); closeAdminMenu()" class="drop-item w-full text-left px-5 py-2.5 text-sm font-semibold text-[#073D53] flex items-center justify-between">
+                                Gerenciar Plataforma
+                                <span class="text-[#48859F]">›</span>
+                            </button>
+                            ` : ''}
+                            <button onclick="logout()" class="drop-item w-full text-left px-5 py-2.5 text-sm font-semibold text-[#CA1515] flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                                Sair
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            wrap.appendChild(badge);
+        }
+
+        function toggleAdminMenu() {
+            const dropdown = document.getElementById('adminDropdown');
+            const arrow = document.getElementById('adminArrow');
+            if (!dropdown) return;
+            const isOpening = dropdown.classList.contains('hidden');
+            dropdown.classList.toggle('hidden');
+            if (arrow) arrow.style.transform = isOpening ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+
+        function closeAdminMenu() {
+            const dropdown = document.getElementById('adminDropdown');
+            const arrow = document.getElementById('adminArrow');
+            if (dropdown) dropdown.classList.add('hidden');
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
+        }
+
+        document.addEventListener('click', function(e) {
+            const badge = document.getElementById('userBadge');
+            if (!badge) return;
+            const dropdown = document.getElementById('adminDropdown');
+            if (!dropdown || dropdown.classList.contains('hidden')) return;
+            if (!badge.contains(e.target)) {
+                closeAdminMenu();
+            }
+        });
+
         // ==================== SISTEMA DE NOTIFICAÇÕES ====================
-        
         function showNotification(message, type = 'success', duration = 3000) {
             const container = document.getElementById('notificationContainer');
             if (!container) return;
-            
+
             const notification = document.createElement('div');
             const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
             const colors = {
@@ -414,8 +786,8 @@
                 warning: 'text-yellow-800',
                 info: 'text-blue-800'
             };
-            
-            notification.className = `notification ${colors[type]} border-l-4 rounded-lg shadow-lg p-4 min-w-[300px] transform transition-all duration-300`;
+
+            notification.className = `notification ${colors[type]} border-l-4 rounded-2xl shadow-lg p-4 min-w-[300px] transform transition-all duration-300`;
             notification.innerHTML = `
                 <div class="flex items-start gap-3">
                     <div class="text-2xl">${icons[type]}</div>
@@ -426,9 +798,9 @@
                     <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">✕</button>
                 </div>
             `;
-            
+
             container.appendChild(notification);
-            
+
             setTimeout(() => {
                 if (notification.parentElement) {
                     notification.style.opacity = '0';
@@ -438,9 +810,30 @@
             }, duration);
         }
 
+        // Abre o calendário nativo do campo de data ao clicar no ícone
+        function abrirCalendario(event, inputId) {
+            event.preventDefault();
+            event.stopPropagation();
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (typeof input.showPicker === 'function') {
+                try {
+                    input.showPicker();
+                    return;
+                } catch (e) {}
+            }
+            input.focus();
+            input.click();
+        }
+        window.abrirCalendario = abrirCalendario;
+
+        // Aviso para funcionalidades presentes no design, mas ainda não implementadas
+        function mostrarAvisoEmBreve(nomeFuncionalidade) {
+            showNotification(`A funcionalidade "${nomeFuncionalidade}" está prevista no design, mas ainda não foi implementada.`, 'info', 4000);
+        }
+        window.mostrarAvisoEmBreve = mostrarAvisoEmBreve;
+
         // ==================== FUNÇÕES DE GERENCIAMENTO DE TURMAS (via API) ====================
-        
-        // Busca lista de turmas da API
         async function carregarTurmas() {
             try {
                 return await api.get("/turmas");
@@ -450,17 +843,14 @@
             }
         }
 
-        // Cria uma turma via API
         async function adicionarTurma(nomeTurma) {
             try {
                 const result = await api.post("/turmas", { nome: nomeTurma });
                 showNotification(`Turma "${nomeTurma}" adicionada com sucesso!`, 'success');
-
-                // Atualiza UI se necessário
-                if (document.getElementById('formAgendamento')) await atualizarGridTurmas();
-                const tabTurmas = document.getElementById('tabTurmas');
-                if (tabTurmas && !tabTurmas.classList.contains('hidden')) {
-                    tabTurmas.innerHTML = await renderizarGerenciadorTurmas();
+                await atualizarFormularioAgendamento();
+                const painel = document.getElementById('painelTurmas');
+                if (painel && !document.getElementById('screenPlataforma').classList.contains('hidden')) {
+                    painel.innerHTML = await renderizarPainelTurmas();
                 }
                 return { sucesso: true };
             } catch (error) {
@@ -469,13 +859,13 @@
             }
         }
 
-        // Edita uma turma via API
         async function editarTurma(id, nomeNovo) {
             try {
                 await api.put("/turmas/" + id, { nome: nomeNovo });
                 showNotification(`Turma editada para "${nomeNovo}"!`, 'success');
-                document.getElementById('tabTurmas').innerHTML = await renderizarGerenciadorTurmas();
-                if (document.getElementById('formAgendamento')) await atualizarGridTurmas();
+                const painel = document.getElementById('painelTurmas');
+                if (painel) painel.innerHTML = await renderizarPainelTurmas();
+                await atualizarFormularioAgendamento();
                 return { sucesso: true };
             } catch (error) {
                 showNotification(error.message, 'error');
@@ -483,13 +873,13 @@
             }
         }
 
-        // Remove uma turma via API
         async function removerTurma(id) {
             try {
                 await api.del("/turmas/" + id);
                 showNotification('Turma removida com sucesso!', 'success');
-                document.getElementById('tabTurmas').innerHTML = await renderizarGerenciadorTurmas();
-                if (document.getElementById('formAgendamento')) await atualizarGridTurmas();
+                const painel = document.getElementById('painelTurmas');
+                if (painel) painel.innerHTML = await renderizarPainelTurmas();
+                await atualizarFormularioAgendamento();
                 return { sucesso: true };
             } catch (error) {
                 showNotification(error.message, 'error');
@@ -498,8 +888,6 @@
         }
 
         // ==================== FUNÇÕES DE PERSISTÊNCIA (via API) ====================
-        
-        // Busca disponibilidade de uma data via API
         async function getDisponibilidade(data) {
             try {
                 const result = await api.get("/disponibilidade?data=" + data);
@@ -512,20 +900,19 @@
             }
         }
 
-        // Verifica disponibilidade via API
         async function verificarDisponibilidade(data, horarioRetirada, horarioDevolucao, quantidade) {
             const disponibilidade = await getDisponibilidade(data);
             const faltas = [];
 
             const dispRetirada = disponibilidade[horarioRetirada];
             if (dispRetirada !== undefined && dispRetirada < quantidade) {
-                faltas.push(horarioRetirada + " (disponível: " + dispRetirada + "/" + quantidade + ")");
+                faltas.push(labelHorario(horarioRetirada) + " (disponível: " + dispRetirada + "/" + quantidade + ")");
             }
 
             if (horarioDevolucao !== horarioRetirada) {
                 const dispDevolucao = disponibilidade[horarioDevolucao];
                 if (dispDevolucao !== undefined && dispDevolucao < quantidade) {
-                    faltas.push(horarioDevolucao + " (disponível: " + dispDevolucao + "/" + quantidade + ")");
+                    faltas.push(labelHorario(horarioDevolucao) + " (disponível: " + dispDevolucao + "/" + quantidade + ")");
                 }
             }
 
@@ -535,7 +922,6 @@
             };
         }
 
-        // Cria um agendamento via API
         async function adicionarAgendamento(dados) {
             try {
                 const result = await api.post("/agendamentos", dados);
@@ -548,7 +934,6 @@
             }
         }
 
-        // Cancela um agendamento via API
         async function cancelarAgendamento(id) {
             try {
                 await api.put("/agendamentos/" + id + "/cancelar");
@@ -561,7 +946,6 @@
             }
         }
 
-        // Busca lista de agendamentos da API (com filtros)
         async function listarAgendamentos(params) {
             try {
                 let url = "/agendamentos";
@@ -580,69 +964,11 @@
         }
 
         // ==================== FUNÇÕES DE INTERFACE ====================
-        
-        function atualizarTimestamp() {
-            const agora = new Date();
-            const horaFormatada = agora.toLocaleTimeString('pt-BR');
-            const dataFormatada = agora.toLocaleDateString('pt-BR');
-            const timestamp = document.getElementById('ultimaAtualizacao');
-            if (timestamp) {
-                timestamp.innerHTML = '🔄 Última atualização: ' + dataFormatada + ' ' + horaFormatada;
-            }
-        }
-        
-        // Renderiza a tabela de horários com disponibilidade da API
-        async function renderizarTabelaHorarios() {
-            const dataSelecionada = document.getElementById('dataVisualizacao').value;
-            const tbody = document.getElementById('tabelaHorarios');
-            if (!tbody) return;
-            if (!dataSelecionada) {
-                tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-gray-500">📅 Selecione uma data acima para visualizar a disponibilidade</td></tr>';
-                return;
-            }
-            const disponibilidade = await getDisponibilidade(dataSelecionada);
-            tbody.innerHTML = HORARIOS.map(horario => {
-                const disponivel = disponibilidade[horario.nome] !== undefined ? disponibilidade[horario.nome] : LIMITE_TOTAL;
-                const status = disponivel > 0;
-                const statusText = status ? 'Disponível' : 'Lotado';
-                const statusColor = status ? 'text-green-600' : 'text-red-600';
-                const statusBg = status ? 'bg-green-100' : 'bg-red-100';
-                const porcentagem = (disponivel / LIMITE_TOTAL) * 100;
-                const barraColor = disponivel > 10 ? 'bg-green-500' : (disponivel > 5 ? 'bg-yellow-500' : 'bg-red-500');
-                return `
-                    <tr class="hover:bg-gray-50 transition-all">
-                        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-bold text-gray-900">${horario.nome}</div></td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="text-2xl font-bold ${statusColor}">${disponivel}</span>
-                                <span class="text-sm text-gray-500">/ ${LIMITE_TOTAL}</span>
-                                <div class="flex-1 max-w-xs">
-                                    <div class="bg-gray-200 rounded-full h-2 overflow-hidden">
-                                        <div class="${barraColor} h-2 rounded-full transition-all" style="width: ${porcentagem}%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusBg} ${statusColor}">${statusText}</span>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-            atualizarTimestamp();
-        }
-        
-        function onDataVisualizacaoChange() {
-            renderizarTabelaHorarios();
-        }
-
-        // ==================== FUNÇÕES DE EXPORTAÇÃO E FILTROS ====================
-        
         function formatarData(dataString) {
             const data = new Date(dataString + "T12:00:00");
             return data.toLocaleDateString('pt-BR');
         }
-        
+
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -650,7 +976,70 @@
             return div.innerHTML;
         }
 
-        // Popup de observações — abre mini janela ao clicar, fecha ao clicar fora
+        // Renderiza a tabela de horários com disponibilidade (estilo Figma)
+        async function renderizarTabelaHorarios() {
+            const dataSelecionada = document.getElementById('dataVisualizacao').value;
+            const tbody = document.getElementById('tabelaHorarios');
+            if (!tbody) return;
+            if (!dataSelecionada) {
+                tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-[#073D53]/60">📅 Selecione uma data acima para visualizar a disponibilidade</td></tr>';
+                return;
+            }
+            const disponibilidade = await getDisponibilidade(dataSelecionada);
+            tbody.innerHTML = HORARIOS.map(horario => {
+                const bruto = disponibilidade[horario.nome] !== undefined ? disponibilidade[horario.nome] : LIMITE_TOTAL;
+                const disponivel = Math.max(0, bruto);
+                const porcentagem = LIMITE_TOTAL > 0 ? Math.round((disponivel / LIMITE_TOTAL) * 100) : 0;
+
+                // Status: Indisponível / Limitado / Disponível (como no Figma)
+                let statusText, statusBg, statusBar;
+                if (disponivel <= 0) {
+                    statusText = 'Indisponível';
+                    statusBg = 'rgba(255,1,5,0.44)';
+                    statusBar = 'transparent';
+                } else if (disponivel <= 15) {
+                    statusText = 'Limitado';
+                    statusBg = 'rgba(239,239,0,0.6)';
+                    statusBar = 'rgba(239,239,0,0.9)';
+                } else {
+                    statusText = 'Disponível';
+                    statusBg = 'rgba(49,186,22,0.35)';
+                    statusBar = 'rgba(49,186,22,0.6)';
+                }
+
+                const [nomePart, horaPart] = labelHorario(horario.nome).split(" (");
+                return `
+                    <tr class="align-middle">
+                        <td class="py-[14px] pr-4">
+                            <div class="cell-pill px-6 w-[236px] whitespace-nowrap">
+                                <span class="font-bold text-[14px]">${escapeHtml(nomePart)}</span>
+                                <span class="text-[13px] text-[#073D53]/50">&nbsp;(${escapeHtml(horaPart)}</span>
+                            </div>
+                        </td>
+                        <td class="py-[14px] px-4">
+                            <div class="cell-pill px-5 gap-3 w-[276px]">
+                                <span class="text-[22px] font-extrabold leading-none">${disponivel}</span>
+                                <span class="text-[13px] text-[#073D53]/50 leading-none">/ ${LIMITE_TOTAL}</span>
+                                <div class="flex-1 h-[14px] rounded-full border ${disponivel <= 0 ? 'border-[#48859F]/50' : 'border-transparent'} overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-400" style="width:${disponivel <= 0 ? 0 : porcentagem}%;background:${statusBar}"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-[14px] pl-4">
+                            <div class="rounded-full h-[42px] w-[166px] flex items-center justify-center border border-[#48859F] font-bold text-[14px] text-[#073D53]" style="background:${statusBg}">
+                                ${statusText}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function onDataVisualizacaoChange() {
+            renderizarTabelaHorarios();
+        }
+
+        // ==================== POPUP DE OBSERVAÇÕES ====================
         document.addEventListener('click', function(e) {
             const trigger = e.target.closest('.obs-trigger');
             if (trigger) {
@@ -674,6 +1063,9 @@
             popup.className = 'obs-popup';
             popup.id = 'obsPopup';
             popup.textContent = texto;
+            popup.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
 
             const rect = el.getBoundingClientRect();
             const popupTop = rect.bottom + 8;
@@ -692,8 +1084,8 @@
             if (popup) popup.remove();
             if (overlay) overlay.remove();
         }
-        
-        // Exportar CSV via backend
+
+        // ==================== EXPORTAÇÃO CSV ====================
         window.exportarAgendamentos = async function() {
             try {
                 const token = localStorage.getItem(TOKEN_KEY);
@@ -719,96 +1111,115 @@
                 showNotification("Erro ao exportar: " + error.message, 'error');
             }
         };
-        
-        // Atualiza a tabela de agendamentos com dados da API
+
+        // ==================== LISTA DE AGENDAMENTOS ====================
         async function atualizarTabelaAgendamentos() {
             const params = { status: "ativo" };
             if (filtroData) params.data = filtroData;
-            
-            const agendamentos = await listarAgendamentos(params);
-            
+
+            let agendamentos = await listarAgendamentos(params);
+
             const containerTabela = document.getElementById('tabelaAgendamentosContainer');
             if (!containerTabela) return;
-            
+
+            // Filtro por professor (nome)
+            if (filtroProfessor) {
+                const termo = filtroProfessor.toLowerCase();
+                agendamentos = agendamentos.filter(ag =>
+                    (ag.professor && ag.professor.nome ? ag.professor.nome : "").toLowerCase().includes(termo)
+                );
+            }
+
+            // Filtro por status (concluído/pendente) — considera data E horário
+            if (filtroStatus === "concluido") {
+                agendamentos = agendamentos.filter(ag => isAgendamentoConcluido(ag));
+            } else if (filtroStatus === "pendente") {
+                agendamentos = agendamentos.filter(ag => !isAgendamentoConcluido(ag));
+            }
+
+            const totalSpan = document.getElementById('totalAgendamentos');
+            if (totalSpan) totalSpan.textContent = agendamentos.length;
+
             if (agendamentos.length === 0) {
                 containerTabela.innerHTML = `
-                    <div class="text-center py-12">
-                        <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="text-center py-16">
+                        <svg class="mx-auto h-16 w-16 text-[#48859F] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        <p class="text-gray-500 text-lg mb-2">Nenhum agendamento encontrado</p>
-                        <p class="text-sm text-gray-400">${filtroData ? 'Tente outra data ou ' : ''}Clique em "Novo Agendamento" para começar</p>
+                        <p class="text-[#073D53] text-lg font-semibold mb-1">Nenhum agendamento encontrado</p>
+                        <p class="text-sm text-[#073D53]/50">${filtroData ? 'Tente outra data ou ' : ''}Clique em "Ver Lista de agendamentos" para começar</p>
                     </div>
                 `;
-                const totalSpan = document.getElementById('totalAgendamentos');
-                if (totalSpan) totalSpan.textContent = "0";
                 return;
             }
-            
-            // Agrupa por data
+
             const agendamentosPorData = {};
             agendamentos.forEach(ag => {
                 const dataStr = ag.data ? ag.data.split("T")[0] : "";
                 if (!agendamentosPorData[dataStr]) agendamentosPorData[dataStr] = [];
                 agendamentosPorData[dataStr].push(ag);
             });
-            
+
             let html = '';
             const datasOrdenadas = Object.keys(agendamentosPorData).sort();
             for (const data of datasOrdenadas) {
                 const ags = agendamentosPorData[data];
                 const dataFormatada = formatarData(data);
                 html += `
-                    <div class="mb-8 last:mb-0">
-                        <div class="bg-gray-100 rounded-lg px-4 py-2 mb-3">
-                            <h3 class="font-bold text-gray-700">📅 ${dataFormatada}</h3>
-                            <p class="text-xs text-gray-500">${ags.length} agendamento(s)</p>
+                    <div class="glass-card rounded-[30px] p-6 sm:p-7">
+                        <div class="flex items-center justify-between flex-wrap gap-2 mb-5">
+                            <h3 class="text-xl font-extrabold">${dataFormatada}</h3>
+                            <span class="text-sm font-semibold text-[#073D53]/60">${ags.length} Agendamento(s)</span>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Professor</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Turma</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retirada</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Devolução</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observações</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr class="text-left border-b border-[#48859F]/25">
+                                        <th class="pb-3 pr-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Professor</th>
+                                        <th class="pb-3 pr-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Turma</th>
+                                        <th class="pb-3 pr-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Quantidade</th>
+                                        <th class="pb-3 pr-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Retirada</th>
+                                        <th class="pb-3 pr-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Devolução</th>
+                                        <th class="pb-3 pr-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Observações</th>
+                                        <th class="pb-3 pl-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-[#48859F]/10">
                 `;
                 for (const ag of ags) {
                     const nomeProfessor = ag.professor ? ag.professor.nome || ag.professor : "-";
                     const nomeTurma = ag.turma ? ag.turma.nome || ag.turma : "-";
-                    const dataExibida = ag.data ? formatarData(ag.data.split("T")[0]) : "-";
+                    const isConcluido = isAgendamentoConcluido(ag);
                     html += `
-                        <tr class="agendamento-row hover:bg-gray-50 transition-all">
-                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">📅 ${dataExibida}</div></td>
-                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm text-gray-600">${escapeHtml(nomeProfessor)}</div></td>
-                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm text-gray-600">${escapeHtml(nomeTurma)}</div></td>
-                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm text-gray-600"><span class="font-semibold text-blue-600">${ag.quantidade}</span> unidades</div></td>
-                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm text-gray-600">${escapeHtml(ag.horarioRetirada)}</div></td>
-                            <td class="px-4 py-3 whitespace-nowrap"><div class="text-sm text-gray-600">${escapeHtml(ag.horarioDevolucao)}</div></td>
-                            <td class="px-4 py-3 relative">
-                                <div class="text-sm text-gray-600 max-w-xs truncate cursor-pointer hover:text-blue-600 transition-all obs-trigger" 
-                                     data-obs="${encodeURIComponent(ag.observacoes || '')}" 
-                                     title="Clique para expandir">
-                                    ${ag.observacoes ? escapeHtml(ag.observacoes) : '<span class="text-gray-400">—</span>'}
+                        <tr class="agendamento-row">
+                            <td class="py-4 pr-4 whitespace-nowrap">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-8 h-8 rounded-full bg-[#C4E8F8] flex items-center justify-center text-[#073D53] text-xs font-bold shrink-0">
+                                        ${escapeHtml((nomeProfessor || "?").charAt(0).toUpperCase())}
+                                    </span>
+                                    <span class="text-sm font-semibold">${escapeHtml(nomeProfessor)}</span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap">
+                            <td class="py-4 pr-4 whitespace-nowrap text-sm text-[#073D53]/80">${escapeHtml(nomeTurma)}</td>
+                            <td class="py-4 pr-4 whitespace-nowrap text-sm font-bold">${ag.quantidade} unidade(s)</td>
+                            <td class="py-4 pr-4 whitespace-nowrap text-sm text-[#073D53]/80">${escapeHtml(labelHorario(ag.horarioRetirada))}</td>
+                            <td class="py-4 pr-4 whitespace-nowrap text-sm text-[#073D53]/80">${escapeHtml(labelHorario(ag.horarioDevolucao))}</td>
+                            <td class="py-4 pr-4 relative">
+                                <div class="text-sm text-[#073D53]/80 max-w-[110px] truncate cursor-pointer hover:text-[#0D5EBA] transition-all obs-trigger"
+                                     data-obs="${encodeURIComponent(ag.observacoes || '')}"
+                                     title="Clique para expandir">
+                                    ${ag.observacoes ? escapeHtml(ag.observacoes) : '<span class="text-[#073D53]/40">—</span>'}
+                                </div>
+                            </td>
+                            <td class="py-4 pl-4 whitespace-nowrap">
                                 ${(() => {
                                     const user = getUsuario();
                                     const podeCancelar = user && (user.role === 'coordenador' || ag.professorId === user.id);
-                                    if (!podeCancelar) return '<span class="text-gray-400 text-sm">—</span>';
-                                    return '<button onclick="abrirModalCancelarObjeto(' + ag.id + ')" class="text-red-600 hover:text-red-800 font-medium text-sm transition-all flex items-center gap-1">' +
+                                    if (!podeCancelar || isConcluido) return '<span class="text-[#073D53]/40 text-sm">—</span>';
+                                    return '<button onclick="abrirModalCancelarObjeto(' + ag.id + ')" class="text-[#CA1515] hover:text-red-800 font-semibold text-sm transition-all flex items-center gap-1.5 border border-[#CA1515]/40 rounded-full px-4 py-1.5 hover:bg-[#CA1515]/10">' +
                                         '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                                             '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>' +
-                                        '</svg>' +
-                                        ' Cancelar' +
+                                        '</svg> Cancelar' +
                                     '</button>';
                                 })()}
                             </td>
@@ -817,13 +1228,33 @@
                 }
                 html += '</tbody></table></div></div>';
             }
-            
+
             containerTabela.innerHTML = html;
-            const totalSpan = document.getElementById('totalAgendamentos');
-            if (totalSpan) totalSpan.textContent = agendamentos.length;
         }
-        
-        // Função chamada quando o usuário digita no filtro de professor
+
+        // Renderiza a tela de Lista de Agendamentos
+        async function renderizarScreenLista() {
+            const agendamentos = await listarAgendamentos({ status: "ativo" });
+            const todasDatas = [...new Set(agendamentos.map(ag => ag.data ? ag.data.split("T")[0] : ""))].sort();
+
+            const selectData = document.getElementById('filtroData');
+            if (selectData) {
+                selectData.innerHTML = '<option value="">Todas as datas</option>' +
+                    todasDatas.map(data => '<option value="' + data + '" ' + (filtroData === data ? 'selected' : '') + '>' + formatarData(data) + '</option>').join('');
+            }
+
+            const exportarWrap = document.getElementById('btnExportarWrap');
+            if (exportarWrap) {
+                exportarWrap.innerHTML = isCoordenador()
+                    ? '<button onclick="window.exportarAgendamentos()" class="btn-primary flex items-center gap-2 text-sm">' +
+                        '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>' +
+                        'Exportar lista</button>'
+                    : '';
+            }
+
+            await atualizarTabelaAgendamentos();
+        }
+
         window.onFiltroProfessorChange = function() {
             const input = document.getElementById('filtroProfessor');
             if (input) {
@@ -831,8 +1262,7 @@
                 atualizarTabelaAgendamentos();
             }
         };
-        
-        // Função chamada quando o usuário seleciona uma data no filtro
+
         window.onFiltroDataChange = function() {
             const select = document.getElementById('filtroData');
             if (select) {
@@ -840,10 +1270,11 @@
                 atualizarTabelaAgendamentos();
             }
         };
-        
+
         window.limparFiltros = function() {
             filtroData = '';
             filtroProfessor = '';
+            filtroStatus = '';
             const inputData = document.getElementById('filtroData');
             const inputProfessor = document.getElementById('filtroProfessor');
             if (inputData) inputData.value = '';
@@ -851,7 +1282,8 @@
             atualizarTabelaAgendamentos();
             showNotification('Filtros limpos!', 'info');
         };
-        
+
+        // ==================== MODAL DE CANCELAMENTO ====================
         function abrirModalCancelar(agendamento) {
             agendamentoParaCancelar = agendamento;
             const confirmMessage = document.getElementById('confirmMessage');
@@ -871,14 +1303,14 @@
                 modal.style.display = 'flex';
             }
         }
-        
+
         async function confirmarCancelamento() {
             if (agendamentoParaCancelar) {
                 await cancelarAgendamento(agendamentoParaCancelar.id);
             }
             fecharConfirmModal();
         }
-        
+
         function fecharConfirmModal() {
             const modal = document.getElementById('confirmModal');
             if (modal) {
@@ -887,197 +1319,153 @@
             }
             agendamentoParaCancelar = null;
         }
-        
+
         window.abrirModalCancelarObjeto = async function(id) {
             const agendamentos = await listarAgendamentos({ status: "ativo" });
             const agendamento = agendamentos.find(ag => ag.id === id);
             if (agendamento) abrirModalCancelar(agendamento);
         };
-        
-        async function renderizarListaAgendamentos() {
-            const container = document.getElementById('tabListar');
-            if (!container) return;
-            
-            const agendamentos = await listarAgendamentos({ status: "ativo" });
-            const todasDatas = [...new Set(agendamentos.map(ag => ag.data ? ag.data.split("T")[0] : ""))].sort();
-            
-            const html = `
-                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-                        <div class="flex justify-between items-center flex-wrap gap-4">
-                            <div>
-                                <h2 class="text-xl font-bold text-white">📋 Agendamentos Futuros</h2>
-                                <p class="text-blue-100 text-sm">Total: <span id="totalAgendamentos">0</span> agendamento(s) encontrado(s)</p>
-                            </div>
-                            ${isCoordenador() ? '<button onclick="window.exportarAgendamentos()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-all text-sm">📊 Exportar Lista</button>' : ''}
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Filtrar por Data</label>
-                                <select id="filtroData" onchange="window.onFiltroDataChange()" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                                    <option value="">Todas as datas</option>
-                                    ${todasDatas.map(data => '<option value="' + data + '" ' + (filtroData === data ? 'selected' : '') + '>' + formatarData(data) + '</option>').join('')}
-                                </select>
-                            </div>
-                            ${isCoordenador() ? `
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Filtrar por Professor</label>
-                                <input type="text" id="filtroProfessor" onkeyup="window.onFiltroProfessorChange()" value="" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Digite o nome do professor...">
-                            </div>
-                            ` : '<div></div>'}
-                            <div class="flex items-end">
-                                <button onclick="window.limparFiltros()" class="w-full bg-gray-500 text-white font-semibold py-2 rounded-lg hover:bg-gray-600 transition-all">Limpar Filtros</button>
-                            </div>
-                        </div>
-                        <div id="tabelaAgendamentosContainer"></div>
-                    </div>
-                </div>
-            `;
-            
-            container.innerHTML = html;
-            await atualizarTabelaAgendamentos();
-        }
-        
-        // ==================== FORMULÁRIO ====================
-        
-        async function atualizarGridTurmas() {
-            const turmas = await carregarTurmas();
-            const gridTurmas = document.getElementById('gridTurmas');
-            if (gridTurmas) {
-                gridTurmas.innerHTML = turmas.map(t => 
-                    '<button type="button" onclick="selecionarTurma(\'' + t.nome.replace(/'/g, "\\'") + '\')" class="turma-option px-3 py-2 text-sm bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-lg text-gray-700 hover:text-blue-700 hover:border-blue-300 transition-all text-left">' + escapeHtml(t.nome) + '</button>'
-                ).join('');
+
+        // ==================== FORMULÁRIO DE AGENDAMENTO ====================
+        // Re-renderiza o formulário (atualiza a lista de turmas) e religa o submit
+        async function atualizarFormularioAgendamento() {
+            const formContainer = document.getElementById('formContainer');
+            if (!formContainer || !document.getElementById('formAgendamento')) return;
+            const dataAntiga = document.getElementById('data').value;
+            formContainer.innerHTML = await renderizarFormulario();
+            const form = document.getElementById('formAgendamento');
+            if (form) {
+                form.addEventListener('submit', handleSubmit);
+                const campoData = document.getElementById('data');
+                if (campoData && dataAntiga) campoData.value = dataAntiga;
             }
         }
-        
-        function selecionarTurma(turma) {
-            const inputTurma = document.getElementById('turma');
-            if (inputTurma) {
-                inputTurma.value = turma;
-                inputTurma.classList.add('border-green-500');
-                setTimeout(() => inputTurma.classList.remove('border-green-500'), 500);
-            }
-        }
-        
+
         async function renderizarFormulario() {
-            const hoje = new Date().toISOString().split('T')[0];
-            const turmas = await carregarTurmas();
+            const hoje = dataLocal();
             const usuario = getUsuario();
+            const turmas = await carregarTurmas();
             return `
-                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-                        <h2 class="text-xl font-bold text-white">📝 Novo Agendamento de Chromebooks</h2>
-                        <p class="text-blue-100 text-sm">Preencha todos os campos obrigatórios (*)</p>
+                <h2 class="text-center text-[24px] font-extrabold text-[#073D53] mb-7">Agendar</h2>
+                <form id="formAgendamento" class="space-y-0" novalidate>
+                    <div>
+                        <label class="form-label">Professor *</label>
+                        <div class="form-field flex items-center gap-2 font-medium">
+                            <svg class="w-3.5 h-3.5 text-[#48859F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            ${escapeHtml(usuario ? usuario.nome : '')}
+                        </div>
+                        <input type="hidden" id="professor" value="${escapeHtml(usuario ? usuario.nome : '')}">
+                        <div class="error-message" id="error-professor"></div>
                     </div>
-                    <form id="formAgendamento" class="p-6 space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">👤 Professor</label>
-                                <div class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 font-medium">
-                                    ${escapeHtml(usuario ? usuario.nome : '')}
-                                </div>
-                                <input type="hidden" id="professor" value="${escapeHtml(usuario ? usuario.nome : '')}">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Turma *</label>
-                                <input type="text" id="turma" name="turma" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Digite ou selecione uma turma abaixo">
-                                <div class="error-message" id="error-turma"></div>
-                                <div class="mt-3">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-xs font-semibold text-gray-500">📋 Turmas disponíveis (${turmas.length}):</label>
-                                        ${isCoordenador() ? '<button type="button" onclick="showTab(\'turmas\')" class="text-xs text-blue-600 hover:text-blue-800 font-semibold">Gerenciar Turmas →</button>' : ''}
-                                    </div>
-                                    <div id="gridTurmas" class="grid grid-cols-3 sm:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-1">
-                                        ${turmas.map(t => 
-                                            '<button type="button" onclick="selecionarTurma(\'' + t.nome.replace(/'/g, "\\'") + '\')" class="turma-option px-3 py-2 text-sm bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-lg text-gray-700 hover:text-blue-700 hover:border-blue-300 transition-all text-left">' + escapeHtml(t.nome) + '</button>'
-                                        ).join('')}
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Quantidade de Chromebooks * (1 a ${LIMITE_TOTAL})</label>
-                                <input type="number" id="quantidade" name="quantidade" required min="1" max="${LIMITE_TOTAL}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Número de unidades">
-                                <div class="error-message" id="error-quantidade"></div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Data do Agendamento *</label>
-                                <input type="date" id="data" name="data" required min="${hoje}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                <div class="error-message" id="error-data"></div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Horário de Retirada *</label>
-                                <select id="horarioRetirada" name="horarioRetirada" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                    <option value="">Selecione...</option>
-                                    ${HORARIOS.map(h => `<option value="${h.nome}">${h.nome}</option>`).join('')}
-                                </select>
-                                <div class="error-message" id="error-horarioRetirada"></div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Horário de Devolução *</label>
-                                <select id="horarioDevolucao" name="horarioDevolucao" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                    <option value="">Selecione...</option>
-                                    ${HORARIOS.map(h => `<option value="${h.nome}">${h.nome}</option>`).join('')}
-                                </select>
-                                <div class="error-message" id="error-horarioDevolucao"></div>
-                                <p class="text-xs text-gray-500 mt-1">💡 Pode ser o mesmo horário da retirada (uso durante a aula)</p>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Observações (opcional)</label>
-                                <textarea id="observacoes" name="observacoes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Informações adicionais..."></textarea>
-                            </div>
+
+                    <div class="grid grid-cols-2 gap-[30px] mt-[14px]">
+                        <div>
+                            <label class="form-label">Quantidade *</label>
+                            <input type="number" id="quantidade" name="quantidade" required min="1" max="${LIMITE_TOTAL}" class="form-field" placeholder="Ex: 10">
+                            <div class="error-message" id="error-quantidade"></div>
                         </div>
-                        <div class="flex gap-4 pt-4">
-                            <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105">📅 Agendar Chromebooks</button>
-                            <button type="button" onclick="limparFormulario()" class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all">Limpar</button>
+                        <div>
+                            <label class="form-label">Data de Agendamento *</label>
+                            <div class="relative">
+                                <input type="date" id="data" name="data" required min="${hoje}" class="form-field !pr-9">
+                                <img src="assets/icon-calendar.png" alt="Abrir calendário" title="Abrir calendário"
+                                    onclick="abrirCalendario(event, 'data')"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 cursor-pointer hover:opacity-100 transition-opacity">
+                            </div>
+                            <div class="error-message" id="error-data"></div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-[30px] mt-[14px]">
+                        <div>
+                            <label class="form-label">Turma *</label>
+                            <select id="turma" name="turma" required class="form-field">
+                                <option value="">Selecione...</option>
+                                ${turmas.map(t => `<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join('')}
+                            </select>
+                            <div class="error-message" id="error-turma"></div>
+                        </div>
+                        <div>
+                            <label class="form-label">Aula de Retirada *</label>
+                            <select id="horarioRetirada" name="horarioRetirada" required class="form-field">
+                                <option value="">Selecione...</option>
+                                ${HORARIOS.map(h => `<option value="${h.nome}">${escapeHtml(labelHorario(h.nome))}</option>`).join('')}
+                            </select>
+                            <div class="error-message" id="error-horarioRetirada"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-[30px] mt-[14px]">
+                        <div>
+                            <label class="form-label">Local *</label>
+                            <input type="text" id="local" disabled value="" placeholder="Em desenvolvimento"
+                                class="form-field" title="Funcionalidade prevista no design, ainda não implementada">
+                        </div>
+                        <div>
+                            <label class="form-label">Aula de Devolução *</label>
+                            <select id="horarioDevolucao" name="horarioDevolucao" required class="form-field">
+                                <option value="">Selecione...</option>
+                                ${HORARIOS.map(h => `<option value="${h.nome}">${escapeHtml(labelHorario(h.nome))}</option>`).join('')}
+                            </select>
+                            <div class="error-message" id="error-horarioDevolucao"></div>
+                            <p class="text-[11px] text-[#073D53]/50 mt-1.5">💡 Pode ser o mesmo horário da retirada (uso durante a aula)</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-[14px]">
+                        <label class="form-label">Observações (opcional)</label>
+                        <textarea id="observacoes" name="observacoes" rows="2" class="form-field" placeholder="Informações adicionais..."></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-3 mt-[28px]">
+                        <button type="submit" class="btn-novo">Novo Agendamento</button>
+                        <button type="button" onclick="limparFormulario()" class="btn-limpar">Limpar</button>
+                    </div>
+                </form>
             `;
         }
-        
+
         function limparFormulario() {
             const campos = ['turma', 'quantidade', 'data', 'horarioRetirada', 'horarioDevolucao', 'observacoes'];
             campos.forEach(campo => {
                 const el = document.getElementById(campo);
                 if (el) el.value = '';
             });
-            // Restaura o campo professor com o nome do usuário logado (nunca deve ficar vazio)
             const professorInput = document.getElementById('professor');
             const usuario = getUsuario();
             if (professorInput && usuario) {
                 professorInput.value = usuario.nome;
             }
             document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
-            document.querySelectorAll('input, select').forEach(el => el.classList.remove('input-error'));
+            document.querySelectorAll('input, select, textarea').forEach(el => el.classList.remove('input-error'));
         }
-        
+
         function limparErros() {
             document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
-            document.querySelectorAll('input, select').forEach(el => el.classList.remove('input-error'));
+            document.querySelectorAll('input, select, textarea').forEach(el => el.classList.remove('input-error'));
         }
-        
-        // Handler do formulário de agendamento — agora assíncrono com API
+
         async function handleSubmit(event) {
             event.preventDefault();
             limparErros();
             const professor = document.getElementById('professor').value.trim();
-            const turmaNome = document.getElementById('turma').value.trim();
+            const turmaId = parseInt(document.getElementById('turma').value);
             const quantidade = parseInt(document.getElementById('quantidade').value);
             const data = document.getElementById('data').value;
             const horarioRetirada = document.getElementById('horarioRetirada').value;
             const horarioDevolucao = document.getElementById('horarioDevolucao').value;
             const observacoes = document.getElementById('observacoes').value.trim();
-            
+
             let isValid = true;
             if (!professor) {
                 document.getElementById('error-professor').textContent = 'Nome do professor é obrigatório';
                 document.getElementById('professor').classList.add('input-error');
                 isValid = false;
             }
-            if (!turmaNome) {
-                document.getElementById('error-turma').textContent = 'Turma é obrigatória';
+            if (!turmaId) {
+                document.getElementById('error-turma').textContent = 'Selecione uma turma';
                 document.getElementById('turma').classList.add('input-error');
                 isValid = false;
             }
@@ -1111,116 +1499,130 @@
                 isValid = false;
             }
             if (!isValid) return;
-            
-            // Busca o ID da turma pelo nome
-            const turmas = await carregarTurmas();
-            const turmaEncontrada = turmas.find(t => t.nome === turmaNome);
-            if (!turmaEncontrada) {
-                showNotification('Turma "' + turmaNome + '" não encontrada. Selecione uma turma da lista.', 'error');
-                return;
-            }
-            
-            // Verifica disponibilidade
+
             const disponibilidade = await verificarDisponibilidade(data, horarioRetirada, horarioDevolucao, quantidade);
             if (!disponibilidade.disponivel) {
                 showNotification(disponibilidade.mensagem, 'error');
                 return;
             }
-            
-            // Cria o agendamento via API
+
             const novoAgendamento = {
-                turmaId: turmaEncontrada.id,
+                turmaId,
                 quantidade,
                 data,
                 horarioRetirada,
                 horarioDevolucao,
                 observacoes
             };
-            
+
             const resultado = await adicionarAgendamento(novoAgendamento);
             if (resultado.sucesso) {
-                // Sincroniza a data de visualização com a data do agendamento criado
                 document.getElementById('dataVisualizacao').value = data;
                 await renderizarTabelaHorarios();
                 limparFormulario();
             }
         }
-        
+
+        // ==================== NAVEGAÇÃO ENTRE TELAS ====================
+        async function mostrarScreen(screen) {
+            closeAdminMenu();
+            document.getElementById('screenAgendar').classList.add('hidden');
+            document.getElementById('screenLista').classList.add('hidden');
+            document.getElementById('screenPlataforma').classList.add('hidden');
+
+            if (screen === 'agendar') {
+                document.getElementById('screenAgendar').classList.remove('hidden');
+                await renderizarTabelaHorarios();
+            } else if (screen === 'lista') {
+                document.getElementById('screenLista').classList.remove('hidden');
+                await renderizarScreenLista();
+            } else if (screen === 'plataforma') {
+                document.getElementById('screenPlataforma').classList.remove('hidden');
+                const painelUsuarios = document.getElementById('painelUsuarios');
+                const painelTurmas = document.getElementById('painelTurmas');
+                painelUsuarios.innerHTML = await renderizarPainelUsuarios();
+                painelTurmas.innerHTML = await renderizarPainelTurmas();
+            }
+        }
+
         // Atualiza todos os componentes da interface
         async function atualizarInterface() {
             await renderizarTabelaHorarios();
-            if (document.getElementById('tabListar')) {
-                await renderizarListaAgendamentos();
+            const screenLista = document.getElementById('screenLista');
+            if (screenLista && !screenLista.classList.contains('hidden')) {
+                await atualizarTabelaAgendamentos();
             }
-            atualizarTimestamp();
-        }
-        
-        // Navegação entre abas
-        async function showTab(tabId) {
-            const tabs = document.querySelectorAll('.tab-content');
-            tabs.forEach(tab => tab.classList.add('hidden'));
-            if (tabId === 'agendar') {
-                document.getElementById('tabAgendar').classList.remove('hidden');
-                if (document.getElementById('formAgendamento')) await atualizarGridTurmas();
-            } else if (tabId === 'listar') {
-                await renderizarListaAgendamentos();
-                document.getElementById('tabListar').classList.remove('hidden');
-            } else if (tabId === 'turmas') {
-                document.getElementById('tabTurmas').innerHTML = await renderizarGerenciadorTurmas();
-                document.getElementById('tabTurmas').classList.remove('hidden');
-            } else if (tabId === 'usuarios') {
-                document.getElementById('tabUsuarios').innerHTML = await renderizarGerenciadorUsuarios();
-                document.getElementById('tabUsuarios').classList.remove('hidden');
-            }
-            const buttons = document.querySelectorAll('.tab-btn');
-            buttons.forEach(btn => {
-                btn.classList.remove('border-blue-500', 'text-blue-600');
-                btn.classList.add('border-transparent', 'text-gray-600');
-            });
-            const activeBtn = document.querySelector('[data-tab="' + tabId + '"]');
-            if (activeBtn) {
-                activeBtn.classList.remove('border-transparent', 'text-gray-600');
-                activeBtn.classList.add('border-blue-500', 'text-blue-600');
+            const painel = document.getElementById('painelTurmas');
+            if (painel && !document.getElementById('screenPlataforma').classList.contains('hidden')) {
+                painel.innerHTML = await renderizarPainelTurmas();
             }
         }
-        
-        // Renderiza o gerenciador de turmas (com dados da API)
-        async function renderizarGerenciadorTurmas() {
+
+        // ==================== GERENCIAR TURMAS (painel direito da plataforma) ====================
+        async function renderizarPainelTurmas() {
             const turmas = await carregarTurmas();
+            const config = await getConfigApi().catch(() => ({ limiteChromebooks: LIMITE_TOTAL }));
+
             return `
-                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex justify-between items-center flex-wrap gap-4">
-                        <div>
-                            <h2 class="text-xl font-bold text-white">🏫 Gerenciar Turmas</h2>
-                            <p class="text-blue-100 text-sm">Adicione, edite ou remova turmas do sistema</p>
-                        </div>
-                        ${isCoordenador() ? '<button onclick="abrirModalAdicionar()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-all">+ Nova Turma</button>' : ''}
+                <div>
+                    <h2 class="text-2xl font-extrabold">Gerenciar Turmas</h2>
+                    <p class="text-sm text-[#073D53]/60 mt-1">Adicione, edite ou remova turmas do sistema</p>
+                    <div class="mt-4 flex items-center justify-between gap-3 flex-wrap">
+                        <span class="text-sm text-[#073D53]/70">Total de turmas cadastradas: <strong>${turmas.length}</strong></span>
+                        <button onclick="abrirModalAdicionar()" class="btn-primary text-sm">+ Nova Turma</button>
                     </div>
-                    <div class="p-6">
-                        <div class="mb-4 text-sm text-gray-600">📊 Total de turmas cadastradas: <strong>${turmas.length}</strong></div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            ${turmas.map(t => `
-                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-all">
-                                    <span class="font-medium text-gray-700">${escapeHtml(t.nome)}</span>
-                                    ${isCoordenador() ? `
-                                    <div class="flex gap-2">
-                                        <button onclick="abrirModalEditar(${t.id}, '${escapeHtml(t.nome).replace(/'/g, "\\'")}')" class="text-blue-600 hover:text-blue-800 transition-all" title="Editar">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                        </button>
-                                        <button onclick="confirmarRemoverTurma(${t.id}, '${escapeHtml(t.nome).replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800 transition-all" title="Remover">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                        </button>
-                                    </div>` : ''}
+                    <div class="mt-4 space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                        ${turmas.map(t => `
+                            <div class="flex items-center justify-between bg-white/60 border border-[#48859F]/30 rounded-2xl px-4 py-2.5 hover:shadow transition-all">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="w-8 h-8 rounded-full bg-[#C4E8F8] flex items-center justify-center text-[#073D53] shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/>
+                                        </svg>
+                                    </span>
+                                    <span class="font-semibold text-sm truncate">${escapeHtml(t.nome)}</span>
                                 </div>
-                            `).join('')}
+                                <div class="flex gap-2 shrink-0">
+                                    <button onclick="abrirModalEditar(${t.id}, '${escapeHtml(t.nome).replace(/'/g, "\\'")}')" class="text-[#0D5EBA] hover:underline transition-all p-1" title="Editar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    </button>
+                                    <button onclick="confirmarRemoverTurma(${t.id}, '${escapeHtml(t.nome).replace(/'/g, "\\'")}')" class="text-[#CA1515] hover:underline transition-all p-1" title="Remover">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${turmas.length === 0 ? '<div class="text-center py-6 text-[#073D53]/50 text-sm">Nenhuma turma cadastrada. Clique em "+ Nova Turma".</div>' : ''}
+                    </div>
+                </div>
+
+                <div class="border-t border-[#48859F]/20 pt-6">
+                    <h3 class="text-lg font-bold">Gerenciar Capacidade</h3>
+                    <div class="mt-3 flex items-center justify-between gap-3 flex-wrap">
+                        <div>
+                            <p class="text-sm text-[#073D53]/60">Quantidade de Chromebooks</p>
+                            <p class="text-3xl font-extrabold text-[#073D53]">${config.limiteChromebooks || LIMITE_TOTAL}</p>
                         </div>
-                        ${turmas.length === 0 ? '<div class="text-center py-8 text-gray-500">Nenhuma turma cadastrada. Clique em "+ Nova Turma" para adicionar.</div>' : ''}
+                        <button onclick="abrirModalCapacidade()" class="btn-ghost text-sm">Alterar</button>
+                    </div>
+                </div>
+
+                <div class="border-t border-[#48859F]/20 pt-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold">Gerenciar Locais</h3>
+                        <button onclick="mostrarAvisoEmBreve('Gerenciar Locais')" disabled
+                            class="w-8 h-8 rounded-full bg-white/60 border border-[#48859F]/40 flex items-center justify-center text-xl leading-none opacity-50 cursor-not-allowed" title="Funcionalidade em desenvolvimento">+</button>
+                    </div>
+                    <div class="mt-3 rounded-2xl border border-dashed border-[#48859F]/40 px-4 py-5 text-center">
+                        <p class="text-sm text-[#073D53]/50 italic">
+                            Gerenciamento de locais (ex: Pátio, Biblioteca, Auditório) previsto no design — ainda não implementado.
+                        </p>
                     </div>
                 </div>
             `;
         }
-        
-        // Abre modal para adicionar turma
+
+        // ==================== MODAIS DE TURMA ====================
         function abrirModalAdicionar() {
             modoEdicao = false;
             turmaEditando = null;
@@ -1230,8 +1632,7 @@
             document.getElementById('turmaModal').classList.remove('hidden');
             document.getElementById('turmaModal').style.display = 'flex';
         }
-        
-        // Abre modal para editar turma (agora recebe id e nome)
+
         function abrirModalEditar(id, nomeTurma) {
             modoEdicao = true;
             turmaEditando = { id, nome: nomeTurma };
@@ -1241,15 +1642,14 @@
             document.getElementById('turmaModal').classList.remove('hidden');
             document.getElementById('turmaModal').style.display = 'flex';
         }
-        
+
         function fecharModal() {
             document.getElementById('turmaModal').classList.add('hidden');
             document.getElementById('turmaModal').style.display = 'none';
             modoEdicao = false;
             turmaEditando = null;
         }
-        
-        // Salva turma via API (cria ou edita)
+
         async function salvarTurma() {
             const nomeTurma = document.getElementById('turmaNome').value.trim();
             if (!nomeTurma) {
@@ -1264,21 +1664,19 @@
             }
             if (resultado.sucesso) {
                 fecharModal();
-                document.getElementById('tabTurmas').innerHTML = await renderizarGerenciadorTurmas();
-                if (document.getElementById('formAgendamento')) await atualizarGridTurmas();
+                const painel = document.getElementById('painelTurmas');
+                if (painel) painel.innerHTML = await renderizarPainelTurmas();
+                await atualizarFormularioAgendamento();
             }
         }
-        
-        // Confirma remoção de turma via API
+
         async function confirmarRemoverTurma(id, nomeTurma) {
             if (confirm('Tem certeza que deseja remover a turma "' + nomeTurma + '"?')) {
                 await removerTurma(id);
             }
         }
-        
-        // ==================== GERENCIAMENTO DE USUÁRIOS ====================
 
-        // Busca a lista de usuários da API (apenas coordenador)
+        // ==================== GERENCIAMENTO DE USUÁRIOS ====================
         async function listarUsuariosApi() {
             try {
                 return await api.get("/auth/usuarios");
@@ -1288,7 +1686,6 @@
             }
         }
 
-        // Exclui um usuário via API (apenas coordenador)
         async function deletarUsuarioApi(id) {
             try {
                 await api.del("/auth/usuarios/" + id);
@@ -1300,7 +1697,6 @@
             }
         }
 
-        // Cadastra um novo usuário via API
         async function cadastrarUsuario(nome, email, senha, role) {
             try {
                 const result = await api.post("/auth/register", { nome, email, senha, role });
@@ -1312,110 +1708,110 @@
             }
         }
 
-        // Renderiza a página de gerenciamento de usuários
-        async function renderizarGerenciadorUsuarios() {
+        // Painel esquerdo da plataforma: Gerenciar Usuários
+        async function renderizarPainelUsuarios() {
             const usuarios = await listarUsuariosApi();
-
             return `
-                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
-                    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex justify-between items-center flex-wrap gap-4">
+                <div>
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
                         <div>
-                            <h2 class="text-xl font-bold text-white">👥 Gerenciar Usuários</h2>
-                            <p class="text-purple-100 text-sm">Cadastre e visualize os usuários do sistema</p>
+                            <h2 class="text-2xl font-extrabold">Gerenciar Usuários</h2>
+                            <p class="text-sm text-[#073D53]/60 mt-1">Cadastre e visualize os usuários do sistema</p>
                         </div>
-                        <button onclick="abrirUsuarioModal()" class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-purple-50 transition-all">+ Novo Usuário</button>
+                        <button onclick="abrirUsuarioModal()" class="btn-primary text-sm">+ Novo Usuário</button>
                     </div>
-                    <div class="p-6">
-                        <div class="mb-4 text-sm text-gray-600">📊 Total de usuários cadastrados: <strong>${usuarios.length}</strong></div>
+                    <div class="mt-4 text-sm text-[#073D53]/70">Total de usuários cadastrados: <strong>${usuarios.length}</strong></div>
 
-                        <!-- Filtros -->
-                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">🔍 Buscar por nome</label>
-                                <input type="text" id="filtroUsuarioNome" onkeyup="window.filtrarUsuarios()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Digite o nome do usuário...">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">📧 Buscar por email</label>
-                                <input type="text" id="filtroUsuarioEmail" onkeyup="window.filtrarUsuarios()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Digite o email do usuário...">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">📅 Filtrar por data de cadastro</label>
-                                <input type="date" id="filtroUsuarioData" onchange="window.filtrarUsuarios()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Buscar por nome</label>
+                            <input type="text" id="filtroUsuarioNome" onkeyup="window.filtrarUsuarios()" class="pill-input text-sm" placeholder="Digite o nome...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Buscar por email</label>
+                            <input type="text" id="filtroUsuarioEmail" onkeyup="window.filtrarUsuarios()" class="pill-input text-sm" placeholder="Digite o email...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-[#073D53]/80 mb-1.5">Filtrar por data de cadastro</label>
+                            <div class="relative">
+                                <input type="date" id="filtroUsuarioData" onchange="window.filtrarUsuarios()" class="pill-input text-sm !pr-11">
+                                <img src="assets/icon-calendar.png" alt="Abrir calendário" title="Abrir calendário"
+                                    onclick="abrirCalendario(event, 'filtroUsuarioData')"
+                                    class="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 cursor-pointer hover:opacity-100 transition-opacity">
                             </div>
                         </div>
+                    </div>
 
-                        <div id="tabelaUsuariosContainer">
-                            ${renderizarTabelaUsuarios(usuarios)}
-                        </div>
+                    <div id="tabelaUsuariosContainer" class="mt-5">
+                        ${renderizarTabelaUsuarios(usuarios)}
                     </div>
                 </div>
             `;
         }
 
-        // Renderiza apenas a tabela de usuários (usada para re-renderizar após filtro)
         function renderizarTabelaUsuarios(usuarios) {
-            // Pega valores dos filtros
             const searchNome = (document.getElementById('filtroUsuarioNome')?.value || '').toLowerCase().trim();
             const searchEmail = (document.getElementById('filtroUsuarioEmail')?.value || '').toLowerCase().trim();
             const filterData = document.getElementById('filtroUsuarioData')?.value || '';
 
-            // Filtra
             let filtrados = usuarios;
-            if (searchNome) {
-                filtrados = filtrados.filter(u => u.nome.toLowerCase().includes(searchNome));
-            }
-            if (searchEmail) {
-                filtrados = filtrados.filter(u => u.email.toLowerCase().includes(searchEmail));
-            }
+            if (searchNome) filtrados = filtrados.filter(u => u.nome.toLowerCase().includes(searchNome));
+            if (searchEmail) filtrados = filtrados.filter(u => u.email.toLowerCase().includes(searchEmail));
             if (filterData) {
                 filtrados = filtrados.filter(u => {
                     if (!u.createdAt) return false;
-                    const dataCadastro = u.createdAt.split('T')[0];
-                    return dataCadastro === filterData;
+                    return u.createdAt.split('T')[0] === filterData;
                 });
             }
 
             if (filtrados.length === 0) {
-                return '<div class="text-center py-8 text-gray-500">Nenhum usuário encontrado com esses filtros.</div>';
+                return '<div class="text-center py-8 text-[#073D53]/50 text-sm">Nenhum usuário encontrado com esses filtros.</div>';
             }
 
             return `
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Perfil</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cadastro</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="text-left border-b border-[#48859F]/25">
+                                <th class="pb-3 pr-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Nome</th>
+                                <th class="pb-3 pr-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Email</th>
+                                <th class="pb-3 pr-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Perfil</th>
+                                <th class="pb-3 pr-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Cadastro</th>
+                                <th class="pb-3 pl-4 text-xs font-bold uppercase tracking-wider text-[#073D53]/60">Ações</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="divide-y divide-[#48859F]/10">
                             ${filtrados.map(u => `
-                                <tr class="hover:bg-gray-50 transition-all">
-                                    <td class="px-4 py-3 whitespace-nowrap">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-lg">${u.role === 'coordenador' ? '👑' : '👨‍🏫'}</span>
-                                            <span class="text-sm font-medium text-gray-900">${escapeHtml(u.nome)}</span>
+                                <tr class="agendamento-row">
+                                    <td class="py-4 pr-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-2.5">
+                                            <span class="w-8 h-8 rounded-full bg-[#C4E8F8] flex items-center justify-center text-[#073D53] text-xs font-bold shrink-0">
+                                                ${escapeHtml((u.nome || "?").charAt(0).toUpperCase())}
+                                            </span>
+                                            <span class="text-sm font-semibold">${escapeHtml(u.nome)}</span>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${escapeHtml(u.email)}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap">
-                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${u.role === 'coordenador' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
+                                    <td class="py-4 pr-4 whitespace-nowrap text-sm text-[#073D53]/75">${escapeHtml(u.email)}</td>
+                                    <td class="py-4 pr-4 whitespace-nowrap">
+                                        <span class="inline-block rounded-full px-4 py-1 text-xs font-bold ${u.role === 'coordenador' ? 'bg-[#86CDEB]/50 text-[#073D53]' : 'bg-[#C4E8F8]/70 text-[#073D53]'}">
                                             ${u.role === 'coordenador' ? 'Coordenador' : 'Professor'}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('pt-BR') : '-'}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap">
-                                        ${u.role !== 'coordenador' ? `
-                                        <button onclick="confirmarExcluirUsuario(${u.id}, '${escapeHtml(u.nome).replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800 font-medium text-sm transition-all flex items-center gap-1" title="Excluir usuário">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                            Excluir
-                                        </button>
-                                        ` : '<span class="text-gray-400 text-sm">—</span>'}
+                                    <td class="py-4 pr-4 whitespace-nowrap text-sm text-[#073D53]/60">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('pt-BR') : '-'}</td>
+                                    <td class="py-4 pl-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-3">
+                                            <button onclick="mostrarAvisoEmBreve('Editar Usuário')" class="text-[#0D5EBA] hover:underline font-semibold text-sm transition-all" title="Editar usuário (em desenvolvimento)">
+                                                Editar
+                                            </button>
+                                            ${u.role !== 'coordenador' ? `
+                                            <button onclick="confirmarExcluirUsuario(${u.id}, '${escapeHtml(u.nome).replace(/'/g, "\\'")}')" class="text-[#CA1515] hover:text-red-800 font-semibold text-sm transition-all flex items-center gap-1" title="Excluir usuário">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                                Excluir
+                                            </button>
+                                            ` : ''}
+                                        </div>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -1425,10 +1821,7 @@
             `;
         }
 
-        // Filtro de usuários — re-renderiza apenas a tabela (sem buscar da API novamente)
         window.filtrarUsuarios = function() {
-            // A tabela já está renderizada, precisamos re-renderizar com os filtros atuais
-            // Como perdemos a lista original, vamos buscar da API novamente
             (async () => {
                 const usuarios = await listarUsuariosApi();
                 const container = document.getElementById('tabelaUsuariosContainer');
@@ -1438,7 +1831,6 @@
             })();
         };
 
-        // Abre modal para cadastrar novo usuário
         function abrirUsuarioModal() {
             document.getElementById('usuarioNome').value = '';
             document.getElementById('usuarioEmail').value = '';
@@ -1454,7 +1846,6 @@
             document.getElementById('usuarioModal').style.display = 'none';
         }
 
-        // Valida e salva um novo usuário
         async function salvarUsuario() {
             const nome = document.getElementById('usuarioNome').value.trim();
             const email = document.getElementById('usuarioEmail').value.trim();
@@ -1479,75 +1870,78 @@
             const resultado = await cadastrarUsuario(nome, email, senha, role);
             if (resultado.sucesso) {
                 fecharUsuarioModal();
-                document.getElementById('tabUsuarios').innerHTML = await renderizarGerenciadorUsuarios();
+                const painel = document.getElementById('painelUsuarios');
+                if (painel) painel.innerHTML = await renderizarPainelUsuarios();
             }
         }
 
-        // Confirma e executa a exclusão de um usuário
         async function confirmarExcluirUsuario(id, nome) {
             if (!confirm(`Tem certeza que deseja excluir o usuário "${nome}"? Esta ação não pode ser desfeita.`)) return;
-            
             const resultado = await deletarUsuarioApi(id);
             if (resultado.sucesso) {
-                document.getElementById('tabUsuarios').innerHTML = await renderizarGerenciadorUsuarios();
+                const painel = document.getElementById('painelUsuarios');
+                if (painel) painel.innerHTML = await renderizarPainelUsuarios();
             }
         }
 
-        // Mostra/esconde o botão da aba de usuários conforme o perfil
-        function atualizarVisibilidadeAbaUsuarios() {
-            const btn = document.getElementById('tabBtnUsuarios');
-            if (btn) {
-                if (isCoordenador()) {
-                    btn.classList.remove('hidden');
-                } else {
-                    btn.classList.add('hidden');
-                }
+        // ==================== GERENCIAR CAPACIDADE ====================
+        function abrirModalCapacidade() {
+            document.getElementById('inputLimiteChromebooks').value = LIMITE_TOTAL;
+            document.getElementById('errorCapacidade').classList.add('hidden');
+            document.getElementById('capacidadeModal').classList.remove('hidden');
+            document.getElementById('capacidadeModal').style.display = 'flex';
+        }
+
+        function fecharModalCapacidade() {
+            document.getElementById('capacidadeModal').classList.add('hidden');
+            document.getElementById('capacidadeModal').style.display = 'none';
+        }
+
+        async function salvarConfiguracao() {
+            const input = document.getElementById('inputLimiteChromebooks');
+            const erroEl = document.getElementById('errorCapacidade');
+            const valor = parseInt(input.value);
+
+            if (isNaN(valor) || valor < 1 || valor > 999) {
+                erroEl.textContent = 'O limite deve estar entre 1 e 999.';
+                erroEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const result = await updateConfigApi(valor);
+                LIMITE_TOTAL = result.limiteChromebooks;
+                showNotification(`Limite atualizado para ${LIMITE_TOTAL} chromebooks!`, 'success');
+                fecharModalCapacidade();
+                await renderizarTabelaHorarios();
+                const painel = document.getElementById('painelTurmas');
+                if (painel) painel.innerHTML = await renderizarPainelTurmas();
+            } catch (e) {
+                erroEl.textContent = e.message || 'Erro ao salvar configuração.';
+                erroEl.classList.remove('hidden');
             }
         }
 
-        // Login: envia email+senha para API, salva token, mostra app
+        // ==================== LOGIN ====================
         async function handleLogin(event) {
             event.preventDefault();
             const email = document.getElementById('loginEmail').value.trim();
             const senha = document.getElementById('loginSenha').value;
             const erroEl = document.getElementById('loginErro');
             const btnLogin = document.getElementById('btnLogin');
-            
+
             erroEl.classList.add('hidden');
             btnLogin.disabled = true;
             btnLogin.innerHTML = '<span class="spinner"></span> Entrando...';
-            
+
             try {
                 const result = await api.post("/auth/login", { email, senha });
                 localStorage.setItem(TOKEN_KEY, result.token);
-                
-                // Mostra app
+
                 document.getElementById('telaLogin').classList.add('hidden');
                 document.getElementById('appContainer').classList.remove('hidden');
-                
-                // Atualiza header com nome do usuário
-                const usuario = getUsuario();
-                const headerInfo = document.querySelector('.container .mb-8.text-center');
-                if (headerInfo && usuario) {
-                    const badge = document.createElement('div');
-                    badge.className = 'mt-2 flex items-center justify-center gap-2';
-                    badge.id = 'userBadge';
-                    badge.innerHTML = `
-                        <span class="inline-flex items-center gap-1 bg-white rounded-full px-4 py-1.5 shadow-sm text-sm">
-                            👤 ${escapeHtml(usuario.nome)}
-                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${usuario.role === 'coordenador' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${usuario.role === 'coordenador' ? 'Coordenador' : 'Professor'}</span>
-                            <button onclick="logout()" class="ml-2 text-red-500 hover:text-red-700 font-medium text-xs">Sair</button>
-                        </span>
-                    `;
-                    // Remove badge anterior se existir
-                    const old = document.getElementById('userBadge');
-                    if (old) old.remove();
-                    headerInfo.appendChild(badge);
-                }
-                
-                // Mostra botão da aba de usuários se for coordenador
-                atualizarVisibilidadeAbaUsuarios();
-                
+
+                atualizarUserBadge();
                 await init();
             } catch (error) {
                 erroEl.textContent = error.message || "Erro ao fazer login.";
@@ -1557,77 +1951,45 @@
                 btnLogin.innerHTML = 'Entrar';
             }
         }
-        
+
         // ==================== INICIALIZAÇÃO ====================
-        
-        // Inicialização principal (chamada após login)
         async function init() {
-            const hoje = new Date().toISOString().split('T')[0];
+            await carregarConfig();
+            const hoje = dataLocal();
             const dataVisualizacao = document.getElementById('dataVisualizacao');
             if (dataVisualizacao) {
                 dataVisualizacao.value = hoje;
                 dataVisualizacao.addEventListener('change', onDataVisualizacaoChange);
             }
             await renderizarTabelaHorarios();
-            document.getElementById('tabAgendar').innerHTML = await renderizarFormulario();
+            document.getElementById('formContainer').innerHTML = await renderizarFormulario();
             const form = document.getElementById('formAgendamento');
             if (form) form.addEventListener('submit', handleSubmit);
-            await renderizarListaAgendamentos();
-            document.getElementById('tabTurmas').innerHTML = await renderizarGerenciadorTurmas();
-            // Mostra/esconde aba de usuários conforme perfil
-            atualizarVisibilidadeAbaUsuarios();
-            if (isCoordenador()) {
-                document.getElementById('tabUsuarios').innerHTML = await renderizarGerenciadorUsuarios();
-            } else {
-                document.getElementById('tabUsuarios').innerHTML = '';
-            }
             setTimeout(() => showNotification('Bem-vindo ao Sistema de Agendamento de Chromebooks!', 'info', 4000), 500);
         }
-        
+
         // Verifica se já está logado ao carregar a página
         (function checkAuth() {
             const token = localStorage.getItem(TOKEN_KEY);
             if (token) {
                 try {
                     const payload = JSON.parse(atob(token.split(".")[1]));
-                    // Verifica se token não expirou
                     if (payload.exp * 1000 > Date.now()) {
-                        // Token válido, mostra app
                         document.getElementById('telaLogin').classList.add('hidden');
                         document.getElementById('appContainer').classList.remove('hidden');
-                        
-                        // Adiciona badge do usuário
-                        const usuario = getUsuario();
-                        const headerInfo = document.querySelector('.container .mb-8.text-center');
-                        if (headerInfo && usuario) {
-                            const badge = document.createElement('div');
-                            badge.id = 'userBadge';
-                            badge.className = 'mt-2 flex items-center justify-center gap-2';
-                            badge.innerHTML = `
-                                <span class="inline-flex items-center gap-1 bg-white rounded-full px-4 py-1.5 shadow-sm text-sm">
-                                    👤 ${escapeHtml(usuario.nome)}
-                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${usuario.role === 'coordenador' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${usuario.role === 'coordenador' ? 'Coordenador' : 'Professor'}</span>
-                                    <button onclick="logout()" class="ml-2 text-red-500 hover:text-red-700 font-medium text-xs">Sair</button>
-                                </span>
-                            `;
-                            headerInfo.appendChild(badge);
-                        }
-                        
-                        atualizarVisibilidadeAbaUsuarios();
+                        atualizarUserBadge();
                         init();
                         return;
                     }
                 } catch (e) {}
             }
-            // Se não há token válido, tela de login já está visível
             document.getElementById('telaLogin').classList.remove('hidden');
         })();
-        
-        // Bind do formulário de login
+
         document.getElementById('formLogin').addEventListener('submit', handleLogin);
-        
+
         // Exportar funções globais necessárias
-        window.showTab = showTab;
+        window.mostrarScreen = mostrarScreen;
         window.confirmarCancelamento = confirmarCancelamento;
         window.fecharConfirmModal = fecharConfirmModal;
         window.limparFormulario = limparFormulario;
@@ -1637,10 +1999,15 @@
         window.salvarTurma = salvarTurma;
         window.confirmarRemoverTurma = confirmarRemoverTurma;
         window.logout = logout;
+        window.toggleAdminMenu = toggleAdminMenu;
+        window.closeAdminMenu = closeAdminMenu;
         window.abrirUsuarioModal = abrirUsuarioModal;
         window.fecharUsuarioModal = fecharUsuarioModal;
         window.salvarUsuario = salvarUsuario;
         window.confirmarExcluirUsuario = confirmarExcluirUsuario;
+        window.abrirModalCapacidade = abrirModalCapacidade;
+        window.fecharModalCapacidade = fecharModalCapacidade;
+        window.salvarConfiguracao = salvarConfiguracao;
     </script>
 </body>
 </html>

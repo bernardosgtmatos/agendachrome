@@ -4,11 +4,13 @@ generator client {
 }
 
 // Fonte de dados
-// Em desenvolvimento: SQLite (não precisa instalar nada)
-// Em produção: trocar provider para "postgresql" e usar DATABASE_URL do Neon
+// Banco em todos os ambientes: PostgreSQL (Supabase)
+// DATABASE_URL  → connection string do pooler (porta 6543, ?pgbouncer=true)
+// DIRECT_URL    → connection string direta (porta 5432, usada por migrations/seed)
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ==================== MODELOS ====================
@@ -32,6 +34,12 @@ model Turma {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   agendamentos Agendamento[]
+}
+
+// Configuração do sistema (singleton — sempre 1 registro)
+model Configuracao {
+  id               Int  @id @default(autoincrement())
+  limiteChromebooks Int @default(36)
 }
 
 // Agendamento de chromebooks para uma turma em uma data/horário
